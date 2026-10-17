@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>관리자 - 완전판매 모니터링 가이드</title>
+<style>
+  :root{
+    --ink:#1C2430; --ink-soft:#5B6472; --ink-faint:#9199A6;
+    --paper:#F5F7FA; --surface:#FFFFFF; --line:#E3E7ED; --card-bg:#E9EDF3;
+    --accent:#1E6FEB; --accent-ink:#FFFFFF; --accent-soft:#E8F0FE; --accent-line:#C7DCFB;
+    --warn:#C2410C; --warn-soft:#FDECE3;
+    --good:#1C8A5E; --good-soft:#E3F5EC;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%; margin:0;}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:"IBM Plex Sans KR", -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:600px; margin:0 auto; min-height:100%; display:flex; flex-direction:column;}
+  header.top{
+    background:var(--surface); border-bottom:1px solid var(--line);
+    padding:calc(16px + env(safe-area-inset-top,0px)) 20px 14px;
+  }
+  header.top h1{margin:0; font-size:20px; font-weight:800;}
+  header.top .sub{margin-top:2px; font-size:13px; color:var(--ink-faint); font-weight:600;}
+
+  .gate{display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding:40px 24px; gap:16px; text-align:center;}
+  .gate h2{margin:0; font-size:18px;}
+  .gate input{
+    width:100%; max-width:260px; border:1px solid var(--line); border-radius:10px; padding:13px 14px;
+    font-size:18px; text-align:center; letter-spacing:2px; background:var(--surface); color:var(--ink); outline:none;
+  }
+  .gate input:focus{border-color:var(--accent);}
+  .gate button{
+    border:none; border-radius:10px; padding:12px 28px; background:var(--accent); color:var(--accent-ink);
+    font-size:15px; font-weight:700; cursor:pointer;
+  }
+  .gate .err{color:var(--warn); font-size:14px; font-weight:600; display:none;}
+  .gate .err.show{display:block;}
+
+  .setup-box{padding:24px 20px; max-width:480px; margin:0 auto;}
+  .setup-box h2{font-size:17px; margin:0 0 10px;}
+  .setup-box ol{padding-left:20px; font-size:14.5px; line-height:1.8; color:var(--ink-soft);}
+  .setup-box a{color:var(--accent);}
+  .setup-box input{
+    width:100%; border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:14px 0 10px;
+    font-size:14px; background:var(--surface); color:var(--ink); outline:none; font-family:monospace;
+  }
+  .setup-box input:focus{border-color:var(--accent);}
+  .setup-box button{
+    width:100%; border:none; border-radius:10px; padding:13px; background:var(--accent); color:var(--accent-ink);
+    font-size:15px; font-weight:700; cursor:pointer;
+  }
+  .setup-box .note{font-size:13px; color:var(--ink-faint); margin-top:10px; line-height:1.6;}
+
+  .search-wrap{padding:12px 20px; border-bottom:1px solid var(--line); background:var(--surface);}
+  .search-wrap input{
+    width:100%; border:1px solid var(--line); border-radius:10px; padding:11px 14px; font-size:16px;
+    background:var(--paper); color:var(--ink); outline:none;
+  }
+  .search-wrap input:focus{border-color:var(--accent);}
+
+  .list{padding:6px 20px 28px; flex:1;}
+  .row{
+    width:100%; display:flex; align-items:center; gap:10px; background:transparent; border:none; border-bottom:1px solid var(--line);
+    padding:14px 2px; text-align:left; cursor:pointer; font-family:inherit; color:var(--ink);
+  }
+  .row .cat{flex:none; font-size:12px; font-weight:700; color:var(--ink-faint); background:var(--card-bg); border-radius:5px; padding:2px 7px;}
+  .row .name{flex:1; font-size:17px; font-weight:600;}
+  .row .chev{flex:none; opacity:.35;}
+
+  .editor{padding:16px 20px 60px;}
+  .editor-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .editor-head h2{margin:0; font-size:20px; font-weight:800;}
+  .back-btn{border:none; background:var(--card-bg); color:var(--ink-soft); border-radius:8px; padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer;}
+
+  .fsection{margin-bottom:22px;}
+  .fsection h3{font-size:14px; font-weight:800; color:var(--accent); margin:0 0 10px; display:flex; align-items:center; gap:6px;}
+  .fsection h3 .dot{width:4px; height:14px; border-radius:2px; background:var(--accent);}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:13px; font-weight:700; color:var(--ink-soft); margin-bottom:5px;}
+  .field .hint{font-size:12px; color:var(--ink-faint); font-weight:500; margin-left:4px;}
+  .field input, .field textarea{
+    width:100%; border:1px solid var(--line); border-radius:9px; padding:10px 12px; font-size:15px;
+    background:var(--surface); color:var(--ink); outline:none; font-family:inherit; resize:vertical;
+  }
+  .field textarea{min-height:60px; line-height:1.5;}
+  .field input:focus, .field textarea:focus{border-color:var(--accent);}
+
+  .save-bar{
+    position:sticky; bottom:0; background:var(--surface); border-top:1px solid var(--line);
+    padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px)); display:flex; gap:8px;
+  }
+  .save-bar button{flex:1; border:none; border-radius:11px; padding:14px; font-size:16px; font-weight:800; cursor:pointer;}
+  .save-bar .save{background:#FFD400; color:#1C2430;}
+  .save-bar .cancel{background:var(--card-bg); color:var(--ink-soft);}
+  .save-bar button:disabled{opacity:.5;}
+
+  .toast{
+    position:fixed; left:50%; bottom:calc(26px + env(safe-area-inset-bottom,0px)); transform:translate(-50%, 12px);
+    z-index:40; background:var(--ink); color:var(--paper); padding:11px 18px; border-radius:999px;
+    font-size:15px; font-weight:600; opacity:0; transition:all .22s ease; pointer-events:none; white-space:nowrap; max-width:90vw; text-overflow:ellipsis; overflow:hidden;
+  }
+  .toast.show{opacity:1; transform:translate(-50%, 0);}
+  .toast.err{background:var(--warn);}
+
+  .token-manage{font-size:12px; color:var(--ink-faint); text-align:center; padding:10px; text-decoration:underline; cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const OWNER = 'bestbobae89';
+const REPO = '-';
+const ADMIN_PASS = '4989';
+const TOKEN_KEY = 'monitoring_admin_gh_token';
+
+const appEl = document.getElementById('app');
+const toastEl = document.getElementById('toast');
+function showToast(msg, isErr){
+  toastEl.textContent = msg;
+  toastEl.classList.toggle('err', !!isErr);
+  toastEl.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toastEl.classList.remove('show'), isErr ? 3200 : 1800);
+}
+
+function getToken(){ try{ return localStorage.getItem(TOKEN_KEY) || ''; }catch(e){ return ''; } }
+function setToken(t){ try{ localStorage.setItem(TOKEN_KEY, t); }catch(e){} }
+function clearToken(){ try{ localStorage.removeItem(TOKEN_KEY); }catch(e){} }
+
+function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64ToUtf8(b64){ return decodeURIComponent(escape(atob(b64.replace(/\n/g,'')))); }
+
+async function ghGetFile(path){
+  const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+    headers: { Authorization: `Bearer ${getToken()}`, Accept: 'application/vnd.github+json' },
+    cache: 'no-store'
+  });
+  if(res.status === 401) throw new Error('token_invalid');
+  if(!res.ok) throw new Error('read_failed_' + res.status);
+  const j = await res.json();
+  return { text: b64ToUtf8(j.content), sha: j.sha };
+}
+
+async function ghPutFile(path, newText, sha, message){
+  const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${getToken()}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, content: utf8ToB64(newText), sha, branch: 'main' })
+  });
+  if(res.status === 401) throw new Error('token_invalid');
+  if(!res.ok){ const t = await res.text(); throw new Error('write_failed_' + res.status + '_' + t); }
+  return res.json();
+}
+
+let DATA = null; // array, loaded after token ready
+let currentSearch = '';
+
+function el(tag, attrs, children){
+  const e = document.createElement(tag);
+  if(attrs) for(const k in attrs){
+    if(k === 'class') e.className = attrs[k];
+    else if(k === 'text') e.textContent = attrs[k];
+    else e.setAttribute(k, attrs[k]);
+  }
+  (children||[]).forEach(c => { if(c) e.appendChild(c); });
+  return e;
+}
+
+// ---------- 1. password gate ----------
+function renderGate(){
+  appEl.innerHTML = '';
+  const box = el('div', {class:'gate'});
+  box.appendChild(el('h2', {text:'🔒 관리자 비밀번호'}));
+  const input = el('input', {type:'password', inputmode:'numeric', pattern:'[0-9]*', placeholder:'비밀번호'});
+  const err = el('div', {class:'err', text:'비밀번호가 틀렸습니다'});
+  const btn = el('button', {text:'확인'});
+  const submit = () => {
+    if(input.value === ADMIN_PASS){ renderTokenGateOrList(); }
+    else { err.classList.add('show'); input.value=''; input.focus(); }
+  };
+  btn.addEventListener('click', submit);
+  input.addEventListener('keydown', (e) => { if(e.key === 'Enter') submit(); });
+  box.appendChild(input);
+  box.appendChild(err);
+  box.appendChild(btn);
+  appEl.appendChild(box);
+  setTimeout(() => input.focus(), 100);
+}
+
+// ---------- 2. token setup ----------
+function renderTokenSetup(){
+  appEl.innerHTML = '';
+  appEl.appendChild(header());
+  const box = el('div', {class:'setup-box'});
+  box.appendChild(el('h2', {text:'깃허브 연결이 처음이에요'}));
+  const ol = el('ol');
+  [
+    '아래 링크를 새 탭에서 열어주세요 → github.com 토큰 만들기',
+    '이름은 아무거나 (예: monitoring-admin)',
+    '"Repository access" → "Only select repositories" → 저장소 "-" 선택',
+    '"Permissions" → "Repository permissions" → "Contents"를 "Read and write"로 변경',
+    '맨 아래 "Generate token" 클릭 → 생성된 토큰(ghp_로 시작하는 긴 문자열) 전체 복사',
+    '아래 칸에 붙여넣고 저장'
+  ].forEach(t => ol.appendChild(el('li', {text:t})));
+  box.appendChild(ol);
+  const link = el('a', {href:'https://github.com/settings/personal-access-tokens/new', target:'_blank', text:'→ 깃허브 토큰 만들러 가기'});
+  box.appendChild(link);
+  const input = el('input', {type:'password', placeholder:'ghp_ 로 시작하는 토큰 붙여넣기', autocomplete:'off'});
+  box.appendChild(input);
+  const btn = el('button', {text:'저장하고 시작하기'});
+  btn.addEventListener('click', async () => {
+    const v = input.value.trim();
+    if(!v){ showToast('토큰을 입력해주세요', true); return; }
+    setToken(v);
+    btn.disabled = true; btn.textContent = '확인 중...';
+    try{
+      await loadData();
+      renderList();
+    }catch(e){
+      clearToken();
+      btn.disabled = false; btn.textContent = '저장하고 시작하기';
+      showToast('연결 실패 — 토큰을 다시 확인해주세요', true);
+    }
+  });
+  box.appendChild(btn);
+  box.appendChild(el('div', {class:'note', text:'이 토큰은 이 기기의 브라우저에만 저장돼요. 다른 사람에게 공유하지 마세요.'}));
+  appEl.appendChild(box);
+}
+
+async function renderTokenGateOrList(){
+  if(!getToken()){ renderTokenSetup(); return; }
+  appEl.innerHTML = '';
+  appEl.appendChild(header());
+  appEl.appendChild(el('div', {class:'setup-box', text:'불러오는 중...'}));
+  try{
+    await loadData();
+    renderList();
+  }catch(e){
+    if(String(e.message).includes('token_invalid')){
+      clearToken();
+      renderTokenSetup();
+      showToast('토큰이 만료됐어요 — 새로 만들어주세요', true);
+    }else{
+      appEl.innerHTML = '';
+      appEl.appendChild(header());
+      const box = el('div', {class:'setup-box'});
+      box.appendChild(el('h2', {text:'불러오기 실패'}));
+      box.appendChild(el('div', {class:'note', text:'네트워크 문제일 수 있어요. 새로고침 해주세요. (' + e.message + ')'}));
+      appEl.appendChild(box);
+    }
+  }
+}
+
+async function loadData(){
+  const f = await ghGetFile('data.json');
+  DATA = JSON.parse(f.text);
+  DATA._sha = f.sha;
+}
+
+function header(){
+  const h = el('header', {class:'top'});
+  h.appendChild(el('h1', {text:'완전판매 모니터링 가이드 · 관리자'}));
+  h.appendChild(el('div', {class:'sub', text:'여기서 고친 내용은 공개 페이지에 바로 반영돼요'}));
+  return h;
+}
+
+// ---------- 3. company list ----------
+function renderList(){
+  appEl.innerHTML = '';
+  appEl.appendChild(header());
+  const searchWrap = el('div', {class:'search-wrap'});
+  const searchInput = el('input', {placeholder:'보험사 검색', value: currentSearch});
+  searchInput.addEventListener('input', () => { currentSearch = searchInput.value; renderListBody(); });
+  searchWrap.appendChild(searchInput);
+  appEl.appendChild(searchWrap);
+  const listEl = el('div', {class:'list', id:'listBody'});
+  appEl.appendChild(listEl);
+  renderListBody();
+  appEl.appendChild(el('div', {class:'token-manage', text:'토큰 재설정 / 로그아웃', id:'logoutBtn'}));
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    if(confirm('저장된 접속 정보를 지울까요? 다음에 다시 토큰을 입력해야 해요.')){
+      clearToken();
+      renderTokenSetup();
+    }
+  });
+}
+
+function renderListBody(){
+  const listEl = document.getElementById('listBody');
+  listEl.innerHTML = '';
+  const q = currentSearch.trim().toLowerCase();
+  const items = DATA.filter(r => !q || r.name.toLowerCase().includes(q));
+  if(!items.length){
+    listEl.appendChild(el('div', {style:'padding:30px 4px;color:var(--ink-faint);text-align:center;', text:'검색 결과가 없어요'}));
+    return;
+  }
+  items.forEach(r => {
+    const row = el('button', {type:'button', class:'row'});
+    row.appendChild(el('span', {class:'cat', text:r.category}));
+    row.appendChild(el('span', {class:'name', text:r.name}));
+    row.appendChild(el('span', {class:'chev', text:'›'}));
+    row.addEventListener('click', () => renderEditor(r.name));
+    listEl.appendChild(row);
+  });
+}
+
+// ---------- 4. editor ----------
+function fieldText(label, value, hint, multiline){
+  const wrap = el('div', {class:'field'});
+  const lbl = el('label', {text:label});
+  if(hint) lbl.appendChild(el('span', {class:'hint', text:'(' + hint + ')'}));
+  wrap.appendChild(lbl);
+  const input = el(multiline ? 'textarea' : 'input', {});
+  input.value = value || '';
+  wrap.appendChild(input);
+  wrap._input = input;
+  return wrap;
+}
+
+function fsection(title, fields){
+  const s = el('div', {class:'fsection'});
+  const h = el('h3');
+  h.appendChild(el('span', {class:'dot'}));
+  h.appendChild(document.createTextNode(title));
+  s.appendChild(h);
+  fields.forEach(f => s.appendChild(f));
+  return s;
+}
+
+function renderEditor(name){
+  const r = DATA.find(x => x.name === name);
+  if(!r) return;
+  appEl.innerHTML = '';
+  appEl.appendChild(header());
+
+  const wrap = el('div', {class:'editor'});
+  const editHead = el('div', {class:'editor-head'});
+  editHead.appendChild(el('h2', {text:r.name}));
+  const backBtn = el('button', {class:'back-btn', text:'← 목록'});
+  backBtn.addEventListener('click', renderList);
+  editHead.appendChild(backBtn);
+  wrap.appendChild(editHead);
+
+  const d = r.deadline || {};
+  const note = r.note || {};
+  const du = r.directUrl || {};
+  const duMobile = du.mobile || {};
+  const duWeb = du.web || {};
+
+  const f_incall = fieldText('인콜 번호', r.incall);
+  const f_outcall = fieldText('아웃콜 번호', r.outcall);
+  wrap.appendChild(fsection('연락처', [f_incall, f_outcall]));
+
+  const f_dl_phone = fieldText('마감기한 - 전화', d['전화']);
+  const f_dl_mobile = fieldText('마감기한 - 모바일', d['모바일']);
+  const f_dl_raw = fieldText('마감기한 - 공통', d._raw, '전화/모바일 구분 없이 하나로 쓸 때만', true);
+  wrap.appendChild(fsection('마감기한', [f_dl_phone, f_dl_mobile, f_dl_raw]));
+
+  const f_phonePath = fieldText('예약경로', r.phonePath, null, true);
+  const f_phoneDate = fieldText('가능날짜', r.phoneDate, null, true);
+  const f_phoneTime = fieldText('가능시간', r.phoneTime, null, true);
+  const f_phoneExcl = fieldText('미성년자 및 제외대상', r.phoneExcl, null, true);
+  wrap.appendChild(fsection('전화', [f_phonePath, f_phoneDate, f_phoneTime, f_phoneExcl]));
+
+  const f_mobilePath = fieldText('예약경로', r.mobilePath, null, true);
+  const f_mobileDate = fieldText('가능날짜', r.mobileDate, null, true);
+  const f_mobileExcl = fieldText('미성년자 및 제외대상', r.mobileExcl, null, true);
+  wrap.appendChild(fsection('모바일', [f_mobilePath, f_mobileDate, f_mobileExcl]));
+
+  const f_mobileAuth = fieldText('인증 가능 방법', r.mobileAuth, '전화·모바일 공통', true);
+  const f_repairMethod = fieldText('보완 처리/확인 방법', r.repairMethod, null, true);
+  const f_repairCheck = fieldText('보완 처리/확인 방법 - 추가', r.repairCheck, null, true);
+  const f_mobileRepair = fieldText('보완 처리/확인 방법 - 모바일', r.mobileRepairMethod, '비워두면 위 전화용과 동일하게 표시돼요', true);
+  wrap.appendChild(fsection('공통', [f_mobileAuth, f_repairMethod, f_repairCheck, f_mobileRepair]));
+
+  const f_note = fieldText('주의사항', note['주의사항'], null, true);
+  wrap.appendChild(fsection('비고', [f_note]));
+
+  const f_du_mobile_url = fieldText('모바일 모니터링 URL', duMobile.url);
+  const f_du_mobile_text = fieldText('모바일 모니터링 표시 문구', duMobile.text, '비워두면 URL 그대로 표시');
+  const f_du_mobile_extra = fieldText('모바일 모니터링 추가설명', duMobile.extra);
+  const f_du_web_url = fieldText('홈페이지 모니터링 URL', duWeb.url);
+  const f_du_web_text = fieldText('홈페이지 모니터링 표시 문구', duWeb.text, '비워두면 URL 그대로 표시');
+  const f_du_web_extra = fieldText('홈페이지 모니터링 추가설명', duWeb.extra);
+  const f_du_date = fieldText('링크 확인일자', du.date, '예: 2026.10.18');
+  const f_du_warn = fieldText('링크 주의 문구', du.warn);
+  const f_du_extraNote = fieldText('추가 안내', du.extraNote, null, true);
+  wrap.appendChild(fsection('모니터링 링크', [f_du_mobile_url, f_du_mobile_text, f_du_mobile_extra, f_du_web_url, f_du_web_text, f_du_web_extra, f_du_date, f_du_warn, f_du_extraNote]));
+
+  appEl.appendChild(wrap);
+
+  const saveBar = el('div', {class:'save-bar'});
+  const cancelBtn = el('button', {class:'cancel', text:'취소'});
+  cancelBtn.addEventListener('click', renderList);
+  const saveBtn = el('button', {class:'save', text:'저장'});
+  saveBtn.addEventListener('click', async () => {
+    saveBtn.disabled = true; cancelBtn.disabled = true; saveBtn.textContent = '저장 중...';
+    try{
+      const g = (w) => w._input.value.trim();
+
+      const newDeadline = {};
+      if(g(f_dl_phone)) newDeadline['전화'] = g(f_dl_phone);
+      if(g(f_dl_mobile)) newDeadline['모바일'] = g(f_dl_mobile);
+      if(!g(f_dl_phone) && !g(f_dl_mobile) && g(f_dl_raw)) newDeadline._raw = g(f_dl_raw);
+
+      const newNote = {};
+      if(g(f_note)) newNote['주의사항'] = g(f_note);
+      // 기존에 다른 비고 키(예: 보완)가 있었다면 보존
+      Object.keys(note).forEach(k => { if(k !== '주의사항' && !(k in newNote)) newNote[k] = note[k]; });
+
+      const newDirectUrl = {
+        mobile: { url: g(f_du_mobile_url) || null, text: g(f_du_mobile_text) || g(f_du_mobile_url) || null, extra: g(f_du_mobile_extra) || null },
+        web: { url: g(f_du_web_url) || null, text: g(f_du_web_text) || g(f_du_web_url) || null, extra: g(f_du_web_extra) || null },
+        date: g(f_du_date) || null,
+        warn: g(f_du_warn) || null,
+        extraNote: g(f_du_extraNote) || null
+      };
+      const hasAnyUrl = newDirectUrl.mobile.url || newDirectUrl.web.url;
+
+      const updated = Object.assign({}, r, {
+        incall: g(f_incall),
+        outcall: g(f_outcall),
+        deadline: newDeadline,
+        phonePath: g(f_phonePath),
+        phoneDate: g(f_phoneDate),
+        phoneTime: g(f_phoneTime),
+        phoneExcl: g(f_phoneExcl),
+        mobilePath: g(f_mobilePath),
+        mobileDate: g(f_mobileDate),
+        mobileExcl: g(f_mobileExcl),
+        mobileAuth: g(f_mobileAuth),
+        repairMethod: g(f_repairMethod),
+        repairCheck: g(f_repairCheck),
+        mobileRepairMethod: g(f_mobileRepair),
+        note: newNote
+      });
+      if(hasAnyUrl){ updated.directUrl = newDirectUrl; } else { delete updated.directUrl; }
+
+      const idx = DATA.findIndex(x => x.name === r.name);
+      const newArr = DATA.slice(0, DATA.length);
+      newArr[idx] = updated;
+
+      // 저장 직전 최신 sha 다시 확인 (다른 기기에서 먼저 저장했을 수도 있으니)
+      const fresh = await ghGetFile('data.json');
+      const freshArr = JSON.parse(fresh.text);
+      const freshIdx = freshArr.findIndex(x => x.name === r.name);
+      if(freshIdx >= 0) freshArr[freshIdx] = updated; else freshArr.push(updated);
+
+      const newText = JSON.stringify(freshArr, null, 2);
+      await ghPutFile('data.json', newText, fresh.sha, `관리자 수정: ${r.name}`);
+
+      DATA = freshArr;
+      showToast('저장됐어요 — 잠시 후 공개 페이지에 반영돼요');
+      renderList();
+    }catch(e){
+      showToast('저장 실패: ' + e.message, true);
+      saveBtn.disabled = false; cancelBtn.disabled = false; saveBtn.textContent = '저장';
+    }
+  });
+  saveBar.appendChild(cancelBtn);
+  saveBar.appendChild(saveBtn);
+  appEl.appendChild(saveBar);
+}
+
+renderGate();
+</script>
+</body>
+</html>

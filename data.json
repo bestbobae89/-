@@ -1,0 +1,1038 @@
+[
+  {
+    "name": "ABL생명",
+    "category": "생보",
+    "deadline": {
+      "_raw": "마감일 지정 (횟수 무관, 마감일까지 발송 가능)\nNEW해피콜 현황조회 > 계약번호 검색 시 마감일 확인"
+    },
+    "mobileAuth": "",
+    "repairMethod": "ABL생명 해피콜담당자에게 개별통보\n웰컴콜예약 : 협회지점별 관할 지점장님 및 해당 OM통해 예약 또는 고객 웰컴센타 인콜 · 2024.10 수정",
+    "repairCheck": "",
+    "phonePath": "",
+    "mobilePath": "가입/청약 → 청약관리 → NEW 해피콜 현황 조회",
+    "phoneDate": "당일예약+1시간뒤\n30분단위예약",
+    "phoneTime": "09:30~20:00(아웃콜)",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {
+      "주의사항": "대상 → 미결 말고 보완 상태로 반송되면 벌점 30점\n1. 40~80 → 주의\n2. 80~120점 → 설계제어30일\n3. 120점초과 코드해지 / 1년단위로 리셋 (ex 0250101~20251231)"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://cyber.abllife.co.kr/mobile/CCMCM040101",
+        "extra": null,
+        "text": "https://cyber.abllife.co.kr/mobile/CCMCM040101"
+      },
+      "web": {
+        "url": null,
+        "extra": null,
+        "text": "접속경로확인안됨"
+      },
+      "date": "2025.07.17",
+      "warn": "변동 다수, 발송 전 확인 필수",
+      "extraNote": null
+    },
+    "incall": "1566-1002",
+    "outcall": "1566-1002",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "AIA생명",
+    "category": "생보",
+    "deadline": {
+      "_raw": "5회 (미연결 시 반송) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "",
+    "repairCheck": "",
+    "phonePath": "TFA, Staff 헬프데스크(1588-2513) 신청 (보관기간: 동의일로부터 1년) · 2023.12 수정",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "incall": "1588-2513",
+    "outcall": "1588-9898"
+  },
+  {
+    "name": "DB생명",
+    "category": "생보",
+    "deadline": {
+      "_raw": "계약일 + 7일"
+    },
+    "mobileAuth": "",
+    "repairMethod": "Etopia → 가설청약 → 심사진행현황 → 해피콜대상시트 → 계약일자 지정 후 조회\nARS 연결시 등록된 휴대폰 사용 전화+계약자 주민번호 입력\n계약자 주민번호 입력 후 모니터링 상담사연결(모든 상담원 통화중일시는 콜백예정)\n*피보험자는 아직 전사 구축전으로 계약자 주민번호로 입력 후 상담사연결 · 2024.10 수정",
+    "repairCheck": "",
+    "phonePath": "Etopia → 가설청약 → 심사진행현황 → 해피콜대상시트 → 계약일자 지정 후 조회",
+    "mobilePath": "",
+    "phoneDate": "당일예약",
+    "phoneTime": "09:00~18:00",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "incall": "1588-3131",
+    "outcall": "1588-3131"
+  },
+  {
+    "name": "IM라이프",
+    "category": "생보",
+    "deadline": {
+      "_raw": "D+10일 (미완료 시 반송) 승인구분 → 관리자승인 후 저장 · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "",
+    "repairCheck": "",
+    "phonePath": "가입제안 및 청약 → 해피콜조회",
+    "mobilePath": "가입제안 및 청약 → 청약서발행 → 전자서류진행현황 → 전자서류구분에 \"모바일해피콜\" 증권번호 입력하고 조회",
+    "phoneDate": "당일예약불가",
+    "phoneTime": "1시간 간격 예약\n09:00~17:00",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "incall": "1588-4770",
+    "outcall": "02-1588-4770",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "IBK",
+    "category": "생보",
+    "deadline": {
+      "_raw": "청약철회 가능 기간 이내 1일 2회 이상 5이상 (미완료 시 반송) (서류가 조금씩 변경 되는 경우가 있어 콜센터 확인 후 서류 첨부 ) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "본사총무 또는 지점총무\n모바일 해피콜 → 기간계 [해피콜실시간대상건 조회] → 모바일 해피콜발송 → 모바일로 고객이 답변 → 완료\n유선 해피콜 → 아웃콜 예약 가능, 즉시콜 가능 → 보완 진행 → 완료 · 2024.10 수정",
+    "repairCheck": "",
+    "phonePath": "Staff / TFA 전산신청 (보완, 미통화 2회 이후 예약 가능) · 2023.12 수정",
+    "mobilePath": "모바일 해피콜 → 기간계 [해피콜실시간대상건 조회] → 모바일 해피콜발송",
+    "phoneDate": "",
+    "phoneTime": "오전 9시~오후 6시 · 2024.10 수정",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "incall": "정보없음",
+    "outcall": "정보없음"
+  },
+  {
+    "name": "KB생명",
+    "category": "생보",
+    "deadline": {
+      "모바일": "계약일 + 3일"
+    },
+    "mobileAuth": "",
+    "repairMethod": "청약 후, 완전판매모니터링에서 현재 심사진행 상태 확인 가능\n1. 조회 조건 설정 후 [조회]버튼을 클릭하여 하단에서 내역 확인\n※ 보완은 유선콜로만 가능(인콜 불가)",
+    "repairCheck": "",
+    "phonePath": "청약관리 → 심사진행현황 → 2번째탭 완전판매 모니터링\n아웃콜 → 계약내용클릭 팝업창\n** 진행중 / 연락불가 인경우에만 발송가능",
+    "mobilePath": "청약관리 → 심사진행현황 → 2번째탭 완전판매 모니터링\n모바일 → 카카오 버튼 클릭\n※ 모바일모니터링 대상은 알림톡 우선 발송 · 2026.10.15 수정",
+    "phoneDate": "당일예약\n30분단위 예약",
+    "phoneTime": "인콜 평일 09:00~18:00\n아웃콜 09:00~18:00\n인콜번호로 일반상담 불가(예약전용) · 2026.10.15 수정",
+    "phoneExcl": "법인 또는 미성년자는 확인서류 미스캔 시 모니터링 불가 · 2026.10.15 수정",
+    "mobileDate": "",
+    "mobileExcl": "미성년자는 친권자가 진행\n법인 또는 미성년자는 확인서류 미스캔 시 모니터링 불가 · 2026.10.15 수정",
+    "note": {
+      "주의사항": "다건 한번에 가능(단, 모든 건이 출금 3시간 이후 가능) · 2026.10.15 수정"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://mhappycall.kblife.co.kr/",
+        "extra": null,
+        "text": "https://mhappycall.kblife.co.kr/"
+      },
+      "web": {
+        "url": "https://mhappycall.kblife.co.kr/",
+        "extra": null,
+        "text": "https://mhappycall.kblife.co.kr/"
+      },
+      "date": "2025.07.17",
+      "warn": "변동 다수, 발송 전 확인 필수",
+      "extraNote": null
+    },
+    "incall": "1599-9832",
+    "outcall": "1599-9832",
+    "mobileRepairMethod": "청약 후, 완전판매모니터링에서 현재 심사진행 상태 확인 가능\n1. 조회 조건 설정 후 [조회]버튼을 클릭하여 하단에서 내역 확인\n2. 조회된 목록에서 증권번호를 클릭하여 '완전판매 모니터링 상세' 팝업창을 불러옴\n- 모바일재모니터링 알림톡 발송처리 및 전화모니터링 관련 화면\n- 완료 : 콜 또는 모바일모니터링 완료된 상태(정상,모집경로상이,자금세탁방지업무상이,고지의무 모두 포함), 미완료 : 진행중/연락불가/철회예정/필수사항 미안내/계약자완료"
+  },
+  {
+    "name": "KDB생명",
+    "category": "생보",
+    "deadline": {
+      "_raw": "부재중 3회 +5영업일 (미완료 시 반송) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "해피콜 보완내용 조회 : 스마트온(GA버튼) → 신계약 → 청약철회 및반송 → 해피콜 → 해피콜대상조회 (점포코드:096204) 담당설계사 스마트온 첫화면에 해피콜 고객 LIST\n보완 : 스마트온에서 보유고객관리 → 우선터치고객 → 즉시콜 요청탭에서 하단에 행추가후 즉시콜 입력 보완 또는 인콜 보완 시 2번, 6번 순서로 누르면 자동연결됨 · 2024.10 수정",
+    "repairCheck": "",
+    "phonePath": "ga → 신계약 → 청약철회및반송 → 해피콜 → 해피콜대상조회 → 통화결과: 맨아래 전체 선택 후 조회",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "오전 9시~오후 5시30분 · 2024.10 수정",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {
+      "보완": "",
+      "주의사항": "종신을 저축연금 등 다른 상품으로 잘못 응답한 경우도 콜로만 보완 가능, 모바일 불가"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://www.kdblife.co.kr/scrId/INLNB004M01P.do",
+        "extra": null,
+        "text": "https://www.kdblife.co.kr/scrId/INLNB004M01P.do"
+      },
+      "web": null,
+      "date": "2025.07.17",
+      "warn": "변동 다수, 발송 전 확인 필수",
+      "extraNote": null
+    },
+    "incall": "1588-4040",
+    "outcall": "1588-4040",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "교보생명",
+    "category": "생보",
+    "deadline": {
+      "_raw": "D+5일(미완료시 자동반송) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "V3(전산) → '모니터링결과조회' or '신계약모니터링점포별조회' 메뉴에서 조회 가능",
+    "repairCheck": "",
+    "phonePath": "신계약모니터링점포별조회 → 해당 건 선택 → 하단의 모니터링예약 · 2023.12 수정",
+    "mobilePath": "",
+    "phoneDate": "당일예약\n1시간단위 예약",
+    "phoneTime": "09:00~18:00(아웃콜)",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "incall": "1588-1636",
+    "outcall": "1588-1001"
+  },
+  {
+    "name": "농협생명",
+    "category": "생보",
+    "deadline": {
+      "_raw": "계약일 포함 +21일까지 진행 가능 · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "수납권한자 내맘N플러스 로그인 → 가입설계/청약 → 청약 → 해피콜 결과확인 및 재해피콜 요청등록\n※ 해당지점건만 확인가능 · 2024.10 수정",
+    "repairCheck": "",
+    "phonePath": "사업단 staff 전산입력 또는 농협생명 담당직원에게 요청 · 2023.12 수정",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "오후 8시까지 가능 · 2024.10 수정",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.nhlife.co.kr/mo/ma/61/00/MOMA6100M00",
+        "extra": null,
+        "text": "https://m.nhlife.co.kr/mo/ma/61/00/MOMA6100M00"
+      },
+      "web": {
+        "url": "https://v4gat.app.goo.gl/hZ9p",
+        "extra": null,
+        "text": "https://v4gat.app.goo.gl/hZ9p"
+      },
+      "date": "2025.07.17",
+      "warn": "변동 다수, 발송 전 확인 필수",
+      "extraNote": null
+    },
+    "incall": "1544-4422",
+    "outcall": "1544-4000",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "동양생명",
+    "category": "생보",
+    "deadline": {},
+    "mobileAuth": "",
+    "repairMethod": "모바일모니터링 보완 → 인콜또는 아웃콜로만보완가능",
+    "repairCheck": "",
+    "phonePath": "기간계로그인 → 메뉴 → 신계약 → 해피콜관리 → 해피콜보완건정보 · 2023.12 수정",
+    "mobilePath": "청약 → 신계약진행보완현황 → 화면내 해피콜 탭 확인후 조회",
+    "phoneDate": "10분단위 예약\n보완건만 지사 \n신규는 원수사예약",
+    "phoneTime": "마감기한은 단톡",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "incall": "1577-1004",
+    "outcall": "02-1577-1004"
+  },
+  {
+    "name": "라이나생명",
+    "category": "생보",
+    "deadline": {
+      "_raw": "종신 및 사망보험 (계약자, 피보험자 모니터링 필수) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "1) 계약심사 → 완전판매모니터링 → 완전판매결과조회 → 계약번호 입력 후 조회\n2) 계약심사 → 완전판매모니터링 → 콜완판보완 조회/입력 → 계약번호 입력 후 조회 · 2024.10 수정",
+    "repairCheck": "",
+    "phonePath": "심사.계약 → 완전판매현황조회 → 계약번호 입력 후 조회",
+    "mobilePath": "",
+    "phoneDate": "당일예약 + 1시간30분",
+    "phoneTime": "8:30~20:00까지\n(휴일도 가능)",
+    "phoneExcl": "(인콜 → 단, 75세 이상 / 미성년자, 다건 계약, 법인 불가)",
+    "mobileDate": "모바일 기한 (단, 처음 재발송은 청약일+2일 이후/ 재발송은 발송일 +1일 이후로만 가능/ 발송 버튼 비활성화 시 마우스 갖다대면 멘트 확인 가능)",
+    "mobileExcl": "사망담보없을시 \n피보 모니터링제외",
+    "note": {
+      "주의사항": ""
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.lina.co.kr/cyber/contract/happycall",
+        "extra": null,
+        "text": "https://m.lina.co.kr/cyber/contract/happycall"
+      },
+      "web": {
+        "url": "https://m.lina.co.kr/cyber/contract/happycall",
+        "extra": null,
+        "text": "https://m.lina.co.kr/cyber/contract/happycall"
+      },
+      "date": "2025.07.17",
+      "warn": "변동 다수, 발송 전 확인 필수",
+      "extraNote": null
+    },
+    "incall": "1588-0058",
+    "outcall": "02-2084-7810",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "메트라이프",
+    "category": "생보",
+    "deadline": {
+      "모바일": "계약일+5영업일\n이후는 인콜"
+    },
+    "mobileAuth": "",
+    "repairMethod": "모바일모니터링 보완 → 인콜또는 아웃콜로만보완가능",
+    "repairCheck": "",
+    "phonePath": "metplus → 신계약 → 완전판매모니터링 현황조회",
+    "mobilePath": "metplus → 신계약 → 완전판매모니터링 현황조회 → 화면하단 모니터링 요청내용등록/조회 선택 → e모니터링 발송",
+    "phoneDate": "모바일 모니터링 기간 예약불가 총무님께 전환요청",
+    "phoneTime": "09:00~18:00(월,수,금)\n09:00~18:50(화,목)",
+    "phoneExcl": "",
+    "mobileDate": "보완내역확인\n신계약 > 보완종합조회>보완종합조회 >완전판매모니터링 조회",
+    "mobileExcl": "",
+    "note": {},
+    "directUrl": {
+      "mobile": {
+        "url": "https://cyber.metlife.co.kr/policy/monitoring/CCPIV40M12",
+        "extra": null,
+        "text": "https://cyber.metlife.co.kr/policy/monitoring/CCPIV40M12"
+      },
+      "web": {
+        "url": "https://cyber.metlife.co.kr/policy/monitoring/CCPIV40M12",
+        "extra": null,
+        "text": "https://cyber.metlife.co.kr/policy/monitoring/CCPIV40M12"
+      },
+      "date": "2025.07.17",
+      "warn": "변동 다수, 발송 전 확인 필수",
+      "extraNote": null
+    },
+    "incall": "1588-9609",
+    "outcall": "1588-9609"
+  },
+  {
+    "name": "미래에셋생명",
+    "category": "생보",
+    "deadline": {
+      "_raw": "보완예약입력은 보완통보일(D)+5영업일이내(기한초과건은 반송) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "기존진행했던 모니터링 방법으로 보완가능",
+    "repairCheck": "",
+    "phonePath": "WGA(지점코드) → 신계약 → 신계약일반조회 → 모니터링조회 → 모니터링결과조회화면 \"보완내역조회'버튼 클릭시 보완내용 확인가능 → \"보완입력\"버튼 클릭하여 예약입력",
+    "mobilePath": "https://life.miraeasset.com/online/monitoring.do",
+    "phoneDate": "전산신청+1일뒤 인콜",
+    "phoneTime": "09:00~16:30 (인콜)\n09:00~16:30 (아웃콜)\n월수→09:00~20:00",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {
+      "주의사항": "보완기일은 전산"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://life.miraeasset.com/online/monitoring.do",
+        "extra": null,
+        "text": "https://life.miraeasset.com/online/monitoring.do"
+      },
+      "web": {
+        "url": "http://online.miraeasset.com/monitoring.html",
+        "extra": null,
+        "text": "http://online.miraeasset.com/monitoring.html"
+      },
+      "date": "2025.07.17",
+      "warn": "변동 다수, 발송 전 확인 필수",
+      "extraNote": null
+    },
+    "incall": "1588-0220",
+    "outcall": "1588-0220"
+  },
+  {
+    "name": "삼성생명",
+    "category": "생보",
+    "deadline": {
+      "모바일": "계약일+20일\n그이후에는 인콜"
+    },
+    "mobileAuth": "",
+    "repairMethod": "모바일모니터링 보완 → 인콜또는 아웃콜로만보완가능\n\n전화모니터링 보완나오면 바로 반송",
+    "repairCheck": "",
+    "phonePath": "GA영업포탈 → 신계약 진행현황(진행현황 상세) → 서비스콜",
+    "mobilePath": "서비스콜",
+    "phoneDate": "",
+    "phoneTime": "",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "FC본인계약\n 모니터링제외",
+    "note": {
+      "주의사항": "1. 계피상이건 피보험자가 모바일모니터링 가능해도 인콜로만진행가능"
+    },
+    "incall": "1588-3115",
+    "outcall": "1588-3115"
+  },
+  {
+    "name": "신한라이프",
+    "category": "생보",
+    "deadline": {},
+    "mobileAuth": "",
+    "repairMethod": "",
+    "repairCheck": "",
+    "phonePath": "설계/청약 → 청약 → 해피콜처리결과조회",
+    "mobilePath": "",
+    "phoneDate": "선해피콜은계약일+2영업일(원수사)\n 6회이상 아웃콜 진행\n 또는 보완으로변경시\n 전산 예약가능\n당일+1시간뒤(30분단위)",
+    "phoneTime": "09:00~17:00(인콜)\n09:00~17:30(아웃콜)",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {
+      "주의사항": ""
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://mobile.shinhanlife.co.kr/cdcwlct0100mm03",
+        "extra": null,
+        "text": "https://mobile.shinhanlife.co.kr/cdcwlct0100mm03"
+      },
+      "web": null,
+      "date": "2025.07.17",
+      "warn": "변동 다수, 발송 전 확인 필수",
+      "extraNote": null
+    },
+    "incall": "1522-2285",
+    "outcall": "1522-2285",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "처브라이프",
+    "category": "생보",
+    "deadline": {
+      "_raw": "D+20일(미 완료시 익월 9일 일괄 반송) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "※ 인콜 불가, 해피콜(아웃콜)만 가능",
+    "repairCheck": "",
+    "phonePath": "1. TFA,Staff 설계사전용 콜센터(1599-4646) 신청\n2. 영업지원시스템 접속(총무, 설계사 모두 예약가능) → 청약관리 → 청약심사/해피콜예약 → 해피콜예약 조회 → 증권번호 클릭하여 예약진행",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "오전9시~오후6시 · 2024.10 수정",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "incall": "정보없음",
+    "outcall": "정보없음",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "카디프생명",
+    "category": "생보",
+    "deadline": {},
+    "mobileAuth": "",
+    "repairMethod": "청약 → 심사진행상태조회 → 계약건 선택후 → [해피콜재발송] 버튼 클릭",
+    "repairCheck": "",
+    "phonePath": "(GMS → 청약 → 심사진행상태조회 → 상태값클릭 → 해피콜예약)",
+    "mobilePath": "",
+    "phoneDate": "1시간단위\n청약일포함+4일 이후부터\n모바일끝나고 전화로 바뀌어서 나가고 그뒤로부터 예약가능",
+    "phoneTime": "09:00~18:00(아웃콜)",
+    "phoneExcl": "",
+    "mobileDate": "청약일포함+4일 까지발송",
+    "mobileExcl": "미성년자와 65세 이상자및 계약자 피보험자 상이건은 \n모바일모니터링불가\n피보미성년자 계약자 부모인경우 계약자만 모니터링진행",
+    "note": {
+      "주의사항": "1. 보완기한 연장불가 \n2.본인명의폰 아닐시 신분증 인증으로 아웃콜 진행 가능"
+    },
+    "incall": "1688-1118",
+    "outcall": "1688-1118",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "푸르덴셜",
+    "category": "생보",
+    "deadline": {
+      "_raw": "최대 10일 3회 이상 발신 · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "",
+    "repairCheck": "",
+    "phonePath": "",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "incall": "1588-3374",
+    "outcall": "02-2144-2000"
+  },
+  {
+    "name": "한화생명",
+    "category": "생보",
+    "deadline": {
+      "_raw": "신계약 모니터링 마감일까지 [시행문으로 확인 가능] · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "GA업무지원 → 고객정보 → 고객접촉이력 → 신계약모니터링 → 신계약모니터링진행상황조회 → 계약일자 또는 증권번호 입력 → 조회 → 통화이력확인 클릭\n* UW반송예정상태가 아닐 경우에는 인콜 가능(2차 미처리일 경우)\n※모니터링 상태별 확인내용: 1차/2차 \"정상\"=모니터링 통과 · 미처리(미진행,무응) · 무응답(1차8번무응 → 고객확인필요) · 결번(번호틀림 → 연락처 확인 후 수정 필수) · 보완(답변 틀림/모른다고 답했을 시 → 확인 후 고객 안내 필요) · CRM회부(청약철회, 모니터링시 의적고지로 언팅 승인 필요건)\n※모바일 모니터링 가능 여부: 1차 결번일경우 모바일 모니터링 불가능, 1차 모바일 보완 → 모바일만 가능(전화 불가), 1차 전화 보완 → 전화만 가능(모바일 불가)\n2차 안내예정일 있음 변경후 예약가능 · 2024.10 수정",
+    "repairCheck": "",
+    "phonePath": "GA업무지원 → 고객정보 → 고객접촉이력 → 신계약모니터링 → 신계약모니터링진행상황조회",
+    "mobilePath": "",
+    "phoneDate": "당일\n(30분단위)",
+    "phoneTime": "09:00~17:30(인콜)\n09:00~18:00(아웃콜)\n09:00~21:00(특별)",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "피보 65세이상이면 계약자도 모바일모니터링 불가",
+    "note": {
+      "주의사항": ""
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://www.hanwhalife.com/main/insurance/newContMon/IN_NWMO000_P01000.do",
+        "extra": null,
+        "text": "https://www.hanwhalife.com/main/insurance/newContMon/IN_NWMO000_P01000.do"
+      },
+      "web": {
+        "url": "https://www.hanwhalife.com/nm.do",
+        "extra": null,
+        "text": "https://www.hanwhalife.com/nm.do"
+      },
+      "date": "2025.07.17",
+      "warn": "변동 다수, 발송 전 확인 필수",
+      "extraNote": null
+    },
+    "incall": "1800-6633",
+    "outcall": "02-1588-6363"
+  },
+  {
+    "name": "흥국생명",
+    "category": "생보",
+    "deadline": {
+      "전화": "계약일 + 15일",
+      "모바일": "계약일 + 4일"
+    },
+    "mobileAuth": "",
+    "repairMethod": "E-라이프 : 가입설계·청약 → 청약관리 → 완전판매모니터링\n(보완건 있을 경우 조치사항 탭에서 해피콜요청일,시간,조치방법,조치메모 입력하여 모니터링 예약 가능, 모바일 모니터링은 청약서 스캔 전 진행 가능) · 2024.10 수정",
+    "repairCheck": "",
+    "phonePath": "E-라이프 : 가입설계·청약 → 청약관리 → 완전판매모니터링",
+    "mobilePath": "",
+    "phoneDate": "당일 +1시간뒤\n(30분간격)\n즉시콜(17:30)원수사",
+    "phoneTime": "09:00~18:00",
+    "phoneExcl": "",
+    "mobileDate": "계약일+5일 자동발송\n청약일+15일",
+    "mobileExcl": "",
+    "note": {
+      "보완": ""
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://smart.heungkuklife.co.kr/smartPage.do?mid=SMS011001",
+        "extra": null,
+        "text": "https://smart.heungkuklife.co.kr/smartPage.do?mid=SMS011001"
+      },
+      "web": null,
+      "date": "2025.07.17",
+      "warn": "변동 다수, 발송 전 확인 필수",
+      "extraNote": "대상건만 사용가능. 대상건이 아닌데도 활용하는 경우가 많아 권장하지 않음"
+    },
+    "incall": "1877-7006",
+    "outcall": "02-1877-7006",
+    "mobileRepairMethod": "모바일모니터링 보완은 다음날까지 모바일로 가능하고 이후에는 콜\n음성봇보완시 → 인콜또는 아웃콜로만 진행가능"
+  },
+  {
+    "name": "AIG손해보험",
+    "category": "손보",
+    "deadline": {},
+    "mobileAuth": "",
+    "repairMethod": "업무메뉴 → 심사 → 완전판매 모니터링 결과조회\n완전판매 보완 발생시 SMS 문자 발송되며, 2영업일안에 후속조치 (모집자조치입력)\n해피콜 미완료(부재 포함) 건 제재 관리 대상에 포함되어, 익월 신계약 제한 진행됨. · 2024.10 수정",
+    "repairCheck": "",
+    "phonePath": "완전판매 결과조회 → 모집자 조치입력 · 2023.12 수정",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "오전9시~오후6시 · 2024.10 수정",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.aig.co.kr/wt/dpwtm100.html?menuId=MS243",
+        "extra": null,
+        "text": "https://m.aig.co.kr/wt/dpwtm100.html?menuId=MS243"
+      },
+      "web": {
+        "url": "https://m.aig.co.kr/wt/dpwtm100.html?menuId=MS243",
+        "extra": null,
+        "text": "https://m.aig.co.kr/wt/dpwtm100.html?menuId=MS243"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1600-4600",
+    "outcall": "1600-4600",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "DB손보",
+    "category": "손보",
+    "deadline": {
+      "_raw": "D+30일 (미완료 시 설계 제어) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "",
+    "repairCheck": "",
+    "phonePath": "메뉴 → 심사지원 → 실적통계 → 완전판매 → 완판관리 → 모니터링결과조회",
+    "mobilePath": "65세이상 당일예약만가능\n(상담사통해서만 진행가능)",
+    "phoneDate": "당일 +10분뒤\n(15분단위)",
+    "phoneTime": "09:00~18:00",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {
+      "주의사항": "모바일모니터링 상태는 > 아웃콜 모니터링"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": null,
+        "extra": null,
+        "text": "어플로만 진행가능"
+      },
+      "web": {
+        "url": "https://www.idbins.com/FWMYCV0436.do?rUrl=/FWMYCV0438.do",
+        "extra": null,
+        "text": "https://www.idbins.com/FWMYCV0436.do?rUrl=/FWMYCV0438.do"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1566-0757",
+    "outcall": "1566-0757"
+  },
+  {
+    "name": "KB손보",
+    "category": "손보",
+    "deadline": {
+      "_raw": "체결일+10영업일"
+    },
+    "mobileAuth": "",
+    "repairMethod": "보완있을시 모바일로보완가능",
+    "repairCheck": "",
+    "phonePath": "계약 → 완전판매현황 → 완전판매모니터링 → 후속조치 대상조회",
+    "mobilePath": "",
+    "phoneDate": "당일예약(선착순)\n(1시간단위)\n당일예약이후는 +1일",
+    "phoneTime": "09:00~18:00",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {
+      "주의사항": "미완료시 완료때까지 설계제어"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "http://m.kbinsure.co.kr/MG109030001.ec?cfcd=LMS",
+        "extra": null,
+        "text": "http://m.kbinsure.co.kr/MG109030001.ec?cfcd=LMS"
+      },
+      "web": {
+        "url": null,
+        "extra": null,
+        "text": "불가"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1544-0019",
+    "outcall": "1544-0019"
+  },
+  {
+    "name": "MG손보",
+    "category": "손보",
+    "deadline": {
+      "_raw": "D+16일까지 완료 – 무응답일 경우 1일2회 5일 진행 (미완료 시 반송) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "",
+    "repairCheck": "",
+    "phonePath": "",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.mggeneralins.com/ML141011MM.scp?men",
+        "extra": null,
+        "text": "https://m.mggeneralins.com/ML141011MM.scp?men"
+      },
+      "web": {
+        "url": "https://www.mggeneralins.com/OL011180DM.scp?menuId=MN0201008",
+        "extra": null,
+        "text": "https://www.mggeneralins.com/OL011180DM.scp?menuId=MN0201008"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1577-3777",
+    "outcall": "1577-3777"
+  },
+  {
+    "name": "농협손보",
+    "category": "손보",
+    "deadline": {},
+    "mobileAuth": "",
+    "repairMethod": "인콜 아웃콜 모바일 채널상관없이 가능",
+    "repairCheck": "",
+    "phonePath": "인콜(재발송가능)\n기한제한없음/2회까지 진행 이후 인콜\n예약은 원수사 요청/당일 가능/12~1시 가급적 제외",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.nhfire.co.kr/mhwr/web/html/emonitoring/eMonitoring01_web.html",
+        "extra": null,
+        "text": "https://m.nhfire.co.kr/mhwr/web/html/emonitoring/eMonitoring01_web.html"
+      },
+      "web": {
+        "url": "https://nhfire.co.kr/wizvera/veraport/install20/install_nhfire.html",
+        "extra": null,
+        "text": "https://nhfire.co.kr/wizvera/veraport/install20/install_nhfire.html"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1644-9600",
+    "outcall": "02-1644-9600"
+  },
+  {
+    "name": "라이나손보",
+    "category": "손보",
+    "deadline": {
+      "_raw": "D+8일 · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "",
+    "repairCheck": "",
+    "phonePath": "담당자 통해 신청 · 2023.12 수정",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "사망담보없을시 \n피보 모니터링제외",
+    "note": {},
+    "incall": "1566-5800",
+    "outcall": "1566-5800"
+  },
+  {
+    "name": "롯데손보",
+    "category": "손보",
+    "deadline": {
+      "전화": "계약일 + 15일",
+      "모바일": "계약일 + 5일"
+    },
+    "mobileAuth": "신용카드→ 홈페이지에서만 인증가능\n공인인증서,휴대폰,신용카드",
+    "repairMethod": "",
+    "repairCheck": "",
+    "phonePath": "전산 신청, TFA 직접가능 · 2023.12 수정",
+    "mobilePath": "",
+    "phoneDate": "당일예약 (30분단위)\n지정예약 (60분단위)",
+    "phoneTime": "09:00~17:30(당일)\n09:00~18:00(지정)",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "미성년자\n피보 모니터링제외",
+    "note": {
+      "보완": "",
+      "주의사항": "1. 당일계약건은 모니터링 조회안됨 원수사 총무 반영요청 \n2. 피보험자 미성년자이면 법정대리인 전산에 기재되어있는 친권자가 콜로하여 완판 진행\n16영업일에 모니터링 안되면 계약반송됨\n 모바일모니터링 보완시 > 모바일로 다시진행가능"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.lotteins.co.kr/wanpan.jsp",
+        "extra": null,
+        "text": "https://m.lotteins.co.kr/wanpan.jsp"
+      },
+      "web": {
+        "url": "https://lotteins.co.kr/index2.jsp",
+        "extra": null,
+        "text": "https://lotteins.co.kr/index2.jsp"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1600-5182",
+    "outcall": "1588-3344"
+  },
+  {
+    "name": "메리츠",
+    "category": "손보",
+    "deadline": {
+      "_raw": "신계약 입력일자 + 1일 이후 10회 진행 (미완료시 청약제한) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "※미보완완료, 부실계약이관건은 예약불가. 인콜만 가능\n※6회 통화불가시 인콜진행(1번)\n※홈페이지/모바일 모니터링 진행가능(공인인증서/휴대폰 본인 인증 후 진행가능)",
+    "repairCheck": "",
+    "phonePath": "Staff 전산 신청 · 2023.12 수정",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "월·수·목·금 오전9시~오후8시(인콜~오후7시), 화 오전9시~오후6시(인콜~오후6시), 토 오전10시~오후2시(인콜~오후2시) · 2024.10 수정",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "사망담보없을시 \n피보 모니터링제외",
+    "note": {},
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.meritzfire.com/certification-center.do#!/",
+        "extra": null,
+        "text": "https://m.meritzfire.com/certification-center.do#!/"
+      },
+      "web": {
+        "url": "https://www.meritzfire.com/customer-center/complete-sales-monitoring.do#!/desc",
+        "extra": null,
+        "text": "https://www.meritzfire.com/customer-center/complete-sales-monitoring.do#!/desc"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1577-7711",
+    "outcall": "1577-7711"
+  },
+  {
+    "name": "삼성화재",
+    "category": "손보",
+    "deadline": {
+      "_raw": "체결일 + 2주"
+    },
+    "mobileAuth": "",
+    "repairMethod": "GA포탈 메인화면 완전판매모니터링 '0건' 클릭 → 사용인코드 또는 지사코드로 조회가능\n삼성화재에서 모니터링을 별도 진행하므로 통화실패 건은 장기담당총무에게 모니터링 가능한 날짜와 시간통보하여 재모니터링 신청가능(당일신청은 해당시간에 TO 있을 경우 가능)\n※고객등록에 입력된 핸드폰번호로 전 연령 인콜 가능, 수납당일부터 통보 없이 인콜 가능\n조사실패건 당일자로 신청 가능. 단, 조사실패건은 재모니터링 신청 후 당일부터 인콜 가능",
+    "repairCheck": "",
+    "phonePath": "",
+    "mobilePath": "",
+    "phoneDate": "1차 전화 부재 또는 \n보완뜰때만 예약가능",
+    "phoneTime": "09:00~18:00",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "사망담보없을시 \n피보 모니터링제외",
+    "note": {
+      "보완": "",
+      "주의사항": "직전 3개월 2점 누적시 익월에 설계제한 5일"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://www.samsungfire.com/sfmi/ui/m/home/mysamsung/contract/monitoring/MO_MY_Monitoring_Procedure.html?quick=monitoring",
+        "extra": null,
+        "text": "https://www.samsungfire.com/sfmi/ui/m/home/mysamsung/contract/monitoring/MO_MY_Monitoring_Procedure.html?quick=monitoring"
+      },
+      "web": {
+        "url": "https://www.samsungfire.com/vh/page/VH.HPCN0100.do",
+        "extra": null,
+        "text": "https://www.samsungfire.com/vh/page/VH.HPCN0100.do"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1566-0553",
+    "outcall": "1588-5114",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "하나손보",
+    "category": "손보",
+    "deadline": {},
+    "mobileAuth": "",
+    "repairMethod": "인콜로 전산에 등록된 번호 확인 후 전화하여 기본정보(주소, 연락처 등)로 진행 가능 · 2026.10.12 수정",
+    "repairCheck": "",
+    "phonePath": "통합고객 → 완전판매관리 → 모니터링현황 → 완전판매모니터링건별현황 → 화면왼쪽하단 재통화예정일 선택 → 시간선택",
+    "mobilePath": "",
+    "phoneDate": "당일예약불가\n당일 즉시콜만가능\n(30분단위)",
+    "phoneTime": "09:00~18:00",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "사망담보없을시 \n피보 모니터링제외\n본인 명의 아닌 번호인 경우 모바일모니터링 불가 · 2026.10.12 수정",
+    "note": {
+      "보완": "",
+      "주의사항": "계약자 피보험자 따로따로 기재되있음 잘보기 \n미완료시 완료때까지 설계제어\n모바일모니터링 보완시 > 모바일로 다시진행가능\n불판사유 돋보기 누름 사유확인가능"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.hanainsure.co.kr/m/myeducar/mypage/monitoringList",
+        "extra": null,
+        "text": "https://m.hanainsure.co.kr/m/myeducar/mypage/monitoringList"
+      },
+      "web": {
+        "url": "https://m.hanainsure.co.kr/m/login?lastUrl=/m/myeducar/mypage/monitoringList",
+        "extra": null,
+        "text": "https://m.hanainsure.co.kr/m/login?lastUrl=/m/myeducar/mypage/monitoringList"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1660-4590",
+    "outcall": "1566-3000",
+    "mobileRepairMethod": ""
+  },
+  {
+    "name": "한화손보",
+    "category": "손보",
+    "deadline": {
+      "_raw": "D+21일 (미완료 시 반송) · 2023.12 수정"
+    },
+    "mobileAuth": "",
+    "repairMethod": "업무관리 → 완전판매현황 (조직구분 : 장기보험, 조치결과 : 조치대상+날짜 선택 후 조회)\n1. 모니터링 총 6회 아웃콜 실시 (콜 희망일자 최초1회 전산 예약가능)\n2. 계약일 + 21일(비영업일 포함)까지 모니터링실패, 자필서명위반, 모집자실명제 위반, 답변거부 등으로 답변 시 승낙거절로 2~3일내 계약취소\n3. 완전판매위반, 고지의무위반, 직무상이 등 보완대상 시 변경배서처리 또는 완전판매보완확인서 작성하여 심사승인요청必\n※ 셀프모니터링 계약자,피보험자 모두 가능(예외대상: 단체/법인/임직원및영업가족/저축연금/계,피모두 미성년자인 계약/만65세이상 불가)\n※ 보완 시 전화예약가능 (내선번호 2번-2번 입력 후 계약자 개인정보 입력, 보통 익일 통화, 시간예약불가)\n※ 셀프모니터링/콜모니터링 시에 자필서명 하지않음으로 대답한 경우 예외없이 무조건 취소됨 · 2024.10 수정",
+    "repairCheck": "",
+    "phonePath": "당일예약불가",
+    "mobilePath": "콜예약일시 입력: '모니터링미실시'·'고객정보수정(신)' 상태에서 1회만 가능 (아웃콜 총 6회 이내 시행)\n기예약 이력 있을 시 추가 예약 불가",
+    "phoneDate": "당일예약불가\n1시간단위로 예약",
+    "phoneTime": "09:00~18:00(인콜)",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "피보가 미성년자인경우 \n법정대리인진행(모바일불가)",
+    "note": {
+      "보완": "",
+      "주의사항": "기한내 모니터링 불판시 계약반송됨"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.hwgeneralins.com/fplaza/etc/perfect00.do",
+        "extra": null,
+        "text": "https://m.hwgeneralins.com/fplaza/etc/perfect00.do"
+      },
+      "web": {
+        "url": "https://www.hwgeneralins.com/fplaza/etc/perfect00.do",
+        "extra": null,
+        "text": "https://www.hwgeneralins.com/fplaza/etc/perfect00.do"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1670-1882",
+    "outcall": "1566-8000"
+  },
+  {
+    "name": "현대해상",
+    "category": "손보",
+    "deadline": {},
+    "mobileAuth": "",
+    "repairMethod": "그냥 완전판매시\n완전판매 계 2026.09.08",
+    "repairCheck": "보완완료시\n계약상세조회화면 완전판매 돋보기누르면 \nEX) 점검종료(20260907)",
+    "phonePath": "",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "10:00~17:00(인콜)",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.hi.co.kr/serviceAction.do",
+        "extra": "오른쪽 상단 삼선클릭 [ 모니터링 ] 검색 후 진행",
+        "text": "https://m.hi.co.kr/serviceAction.do > 오른쪽 상단 삼선클릭 [ 모니터링 ] 검색 후 진행"
+      },
+      "web": {
+        "url": "https://www.hi.co.kr/serviceAction.do",
+        "extra": "오른쪽 상단 삼선클릭 [ 모니터링 ] 검색 후 진행",
+        "text": "https://www.hi.co.kr/serviceAction.do > 오른쪽 상단 삼선클릭 [ 모니터링 ] 검색 후 진행"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1577-3223(ARS 2번)",
+    "outcall": "1577-3223"
+  },
+  {
+    "name": "흥국화재",
+    "category": "손보",
+    "deadline": {},
+    "mobileAuth": "",
+    "repairMethod": "",
+    "repairCheck": "",
+    "phonePath": "",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {
+      "보완": "",
+      "주의사항": "1. 벌점있을경우 모니터링 미진행시 불판 그외는 안해도불판 x\n2. 모바일 > 모바일 보완가능 전화보완경우 모바일로보완 불가능(직접발송눌러보기)\n3. 틀린내용확인 → 모집자조치화면 엑셀 아이콘으로 다운로드"
+    },
+    "directUrl": {
+      "mobile": {
+        "url": "https://m.heungkukfire.co.kr/mycontract/mycn/CMCCN0401_M05/CMCCN0401_M05.do",
+        "extra": null,
+        "text": "https://m.heungkukfire.co.kr/mycontract/mycn/CMCCN0401_M05/CMCCN0401_M05.do"
+      },
+      "web": {
+        "url": "https://www.heungkukfire.co.kr/CNW/fullSalesAgree.do",
+        "extra": null,
+        "text": "https://www.heungkukfire.co.kr/CNW/fullSalesAgree.do"
+      },
+      "date": "2025.06.19",
+      "warn": "변동 확인 후 발송 필수",
+      "extraNote": null
+    },
+    "incall": "1688-6997",
+    "outcall": "02-1688-6997"
+  },
+  {
+    "name": "하나생명",
+    "category": "생보",
+    "deadline": {},
+    "mobileAuth": "",
+    "repairMethod": "Hanaro 메인메뉴 → 가입설계 → 완전판매모니터링\n* 청약 기간 입력후 조회: 성공/미성공 등의 결과 조회 가능",
+    "repairCheck": "",
+    "phonePath": "가입설계 → 모니터링 → 완전판매모니터링 → 조회결과 리스트의 성공결과 확인 · 2023.12 수정",
+    "mobilePath": "",
+    "phoneDate": "",
+    "phoneTime": "",
+    "phoneExcl": "",
+    "mobileDate": "",
+    "mobileExcl": "",
+    "note": {},
+    "incall": "1577-1112",
+    "outcall": "1577-1112",
+    "mobileRepairMethod": ""
+  }
+]
