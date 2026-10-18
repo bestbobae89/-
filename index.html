@@ -541,6 +541,25 @@
   </div>
 </div>
 
+<div class="quick-popup-overlay" id="tutorialOverlay">
+  <div class="quick-popup-box">
+    <div class="quick-popup-head">
+      <h2>사용 방법</h2>
+      <button type="button" class="quick-popup-close" id="tutorialClose" aria-label="닫기">✕</button>
+    </div>
+    <div class="quick-popup-body">
+      <div class="section">
+        <h3><span class="dot"></span><span class="sec-title">이렇게 써보세요</span></h3>
+        <div class="field"><div class="k">검색</div><div class="v">검색창에 보험사 이름을 입력하세요 (초성만 입력해도 돼요, 예: ㅅㅅ → 삼성)</div></div>
+        <div class="field"><div class="k">탭</div><div class="v">상단 탭에서 생명보험 / 손해보험을 구분해서 볼 수 있어요</div></div>
+        <div class="field"><div class="k">상세보기</div><div class="v">보험사를 누르면 마감기한·전화·모바일·비고 탭으로 상세 내용이 나와요</div></div>
+        <div class="field"><div class="k">즐겨찾기</div><div class="v">★ 아이콘을 누르면 자주 쓰는 보험사를 즐겨찾기에 저장할 수 있어요</div></div>
+        <div class="field"><div class="k">전화 걸기</div><div class="v">전화번호를 누르면 바로 전화를 걸 수 있어요</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const NA = "정보없음";
 let DATA = [];
@@ -1410,6 +1429,30 @@ document.getElementById('adminPanelClose').addEventListener('click', closeAdminP
 adminPanelOverlay.addEventListener('click', (e) => {
   if(e.target === adminPanelOverlay) closeAdminPanel();
 });
+
+// ---------- 사용법 안내 팝업 (처음 접속 시, 이후 30일마다 재표시) ----------
+(function(){
+  const TUTORIAL_KEY = 'monitoring_tutorial_last_shown';
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+  const tutorialOverlay = document.getElementById('tutorialOverlay');
+  const tutorialClose = document.getElementById('tutorialClose');
+  function closeTutorial(){
+    tutorialOverlay.classList.remove('show');
+    try{ localStorage.setItem(TUTORIAL_KEY, String(Date.now())); }catch(e){}
+  }
+  function maybeShowTutorial(){
+    let last = 0;
+    try{ last = parseInt(localStorage.getItem(TUTORIAL_KEY) || '0', 10); }catch(e){}
+    if(!last || (Date.now() - last) >= THIRTY_DAYS_MS){
+      tutorialOverlay.classList.add('show');
+    }
+  }
+  tutorialClose.addEventListener('click', closeTutorial);
+  tutorialOverlay.addEventListener('click', (e) => {
+    if(e.target === tutorialOverlay) closeTutorial();
+  });
+  maybeShowTutorial();
+})();
 telConfirmCall.addEventListener('click', () => {
   if(pendingTelHref){ window.location.href = pendingTelHref; }
   closeTelConfirm();
