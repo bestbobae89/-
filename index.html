@@ -1350,6 +1350,7 @@ function closeAdminPassPrompt(){
 }
 function tryAdminPassSubmit(){
   if(digitsOnly(adminPassInput.value) === ADMIN_PASS){
+    try{ localStorage.setItem('monitoring_admin_pass_ok', '1'); }catch(e){}
     closeAdminPassPrompt();
     openAdminPanel();
   }else{
