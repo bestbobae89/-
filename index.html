@@ -404,6 +404,18 @@
   .tel-confirm-btn.call{background:var(--accent); color:var(--accent-ink);}
   .tel-confirm-btn:active{transform:scale(0.97);}
 
+  .paste-preview{margin:12px 2px 4px;}
+  .paste-preview-label{font-size:calc(14px * var(--fs-mul)); font-weight:700; color:var(--ink-soft); margin-bottom:6px;}
+  .paste-preview-box{
+    background:var(--card-bg); border:1px dashed var(--line); border-radius:12px;
+    padding:12px 14px; font-size:calc(15px * var(--fs-mul)); color:var(--ink);
+    line-height:1.6; white-space:pre-line; word-break:break-all;
+  }
+  .tutorial-nav{margin-top:16px;}
+  .tutorial-dots{display:flex; justify-content:center; gap:6px; margin-bottom:12px;}
+  .tdot{width:7px; height:7px; border-radius:50%; background:var(--line); transition:all .15s ease;}
+  .tdot.active{background:var(--accent); width:18px; border-radius:4px;}
+
   .admin-pass-input{
     width:100%; border:1px solid var(--line); border-radius:10px; padding:13px 14px;
     font-family:inherit; font-size:calc(19px * var(--fs-mul)); text-align:center; letter-spacing:2px;
@@ -548,14 +560,48 @@
       <button type="button" class="quick-popup-close" id="tutorialClose" aria-label="닫기">✕</button>
     </div>
     <div class="quick-popup-body">
-      <div class="section">
-        <h3><span class="dot"></span><span class="sec-title">이렇게 써보세요</span></h3>
-        <div class="field"><div class="k">검색</div><div class="v">검색창에 보험사 이름을 입력하세요 (초성만 입력해도 돼요, 예: ㅅㅅ → 삼성)</div></div>
-        <div class="field"><div class="k">탭</div><div class="v">상단 탭에서 생명보험 / 손해보험을 구분해서 볼 수 있어요</div></div>
-        <div class="field"><div class="k">상세보기</div><div class="v">보험사를 누르면 마감기한·전화·모바일·비고 탭으로 상세 내용이 나와요</div></div>
-        <div class="field"><div class="k">즐겨찾기</div><div class="v">★ 아이콘을 누르면 자주 쓰는 보험사를 즐겨찾기에 저장할 수 있어요</div></div>
-        <div class="field"><div class="k">전화 걸기</div><div class="v">전화번호를 누르면 바로 전화를 걸 수 있어요</div></div>
-        <div class="field"><div class="k">바로가기 추가</div><div class="v">브라우저 메뉴(≡ 또는 ⋮)에서 '홈 화면에 추가' 또는 '즐겨찾기에 추가'를 누르면, 매번 찾아올 필요 없이 아이콘 하나로 바로 열 수 있어요</div></div>
+      <div class="tutorial-step" id="tutorialStep1">
+        <div class="section">
+          <h3><span class="dot"></span><span class="sec-title">핵심 기능: 복사해서 바로 전달</span></h3>
+          <div class="field"><div class="v">보험사 상세화면에서 복사 버튼을 누르면, 보험사명이 함께 담긴 문구가 복사돼요. 카톡·문자에 그대로 붙여넣기만 하면 끝!</div></div>
+        </div>
+        <div class="sendbox">
+          <div class="sendbox-eyebrow">연락처 안내 (예시)</div>
+          <div class="send-row">
+            <div class="send-label">아웃콜 <span class="send-label-hint">(콜센터 → 고객)</span></div>
+            <div class="send-value-wrap">
+              <div class="send-value-tel"><span class="tel-icon">📞</span> <span class="tel-num">1588-5114</span></div>
+              <button type="button" class="copy-mini" disabled aria-hidden="true"><span class="copy-mini-label">개별복사</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="paste-preview">
+          <div class="paste-preview-label">👉 붙여넣으면</div>
+          <div class="paste-preview-box">[삼성화재] 완전판매 모니터링
+
+📞 아웃콜 1588-5114</div>
+        </div>
+      </div>
+      <div class="tutorial-step" id="tutorialStep2" style="display:none;">
+        <div class="section">
+          <h3><span class="dot"></span><span class="sec-title">이렇게 써보세요</span></h3>
+          <div class="field"><div class="k">검색</div><div class="v">검색창에 보험사 이름을 입력하세요 (초성만 입력해도 돼요, 예: ㅅㅅ → 삼성)</div></div>
+          <div class="field"><div class="k">탭</div><div class="v">상단 탭에서 생명보험 / 손해보험을 구분해서 볼 수 있어요</div></div>
+          <div class="field"><div class="k">상세보기</div><div class="v">보험사를 누르면 마감기한·전화·모바일·비고 탭으로 상세 내용이 나와요</div></div>
+          <div class="field"><div class="k">즐겨찾기</div><div class="v">★ 아이콘을 누르면 자주 쓰는 보험사를 즐겨찾기에 저장할 수 있어요</div></div>
+          <div class="field"><div class="k">전화 걸기</div><div class="v">전화번호를 누르면 바로 전화를 걸 수 있어요</div></div>
+          <div class="field"><div class="k">바로가기 추가</div><div class="v">브라우저 메뉴(≡ 또는 ⋮)에서 '홈 화면에 추가' 또는 '즐겨찾기에 추가'를 누르면, 매번 찾아올 필요 없이 아이콘 하나로 바로 열 수 있어요</div></div>
+        </div>
+      </div>
+      <div class="tutorial-nav">
+        <div class="tutorial-dots"><span class="tdot active" id="tdot1"></span><span class="tdot" id="tdot2"></span></div>
+        <div class="tel-confirm-actions" id="tutorialNav1">
+          <button type="button" class="tel-confirm-btn call" id="tutorialNext" style="flex:1;">다음 →</button>
+        </div>
+        <div class="tel-confirm-actions" id="tutorialNav2" style="display:none;">
+          <button type="button" class="tel-confirm-btn cancel" id="tutorialPrev">← 이전</button>
+          <button type="button" class="tel-confirm-btn call" id="tutorialDone">확인</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1437,6 +1483,26 @@ adminPanelOverlay.addEventListener('click', (e) => {
   const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
   const tutorialOverlay = document.getElementById('tutorialOverlay');
   const tutorialClose = document.getElementById('tutorialClose');
+  const tStep1 = document.getElementById('tutorialStep1');
+  const tStep2 = document.getElementById('tutorialStep2');
+  const tNav1 = document.getElementById('tutorialNav1');
+  const tNav2 = document.getElementById('tutorialNav2');
+  const tDot1 = document.getElementById('tdot1');
+  const tDot2 = document.getElementById('tdot2');
+  const tNextBtn = document.getElementById('tutorialNext');
+  const tPrevBtn = document.getElementById('tutorialPrev');
+  const tDoneBtn = document.getElementById('tutorialDone');
+  function showTutorialStep(n){
+    const body = tutorialOverlay.querySelector('.quick-popup-body');
+    if(body) body.scrollTop = 0;
+    const onStep1 = (n === 1);
+    tStep1.style.display = onStep1 ? '' : 'none';
+    tStep2.style.display = onStep1 ? 'none' : '';
+    tNav1.style.display = onStep1 ? '' : 'none';
+    tNav2.style.display = onStep1 ? 'none' : '';
+    tDot1.classList.toggle('active', onStep1);
+    tDot2.classList.toggle('active', !onStep1);
+  }
   function closeTutorial(){
     tutorialOverlay.classList.remove('show');
     try{ localStorage.setItem(TUTORIAL_KEY, String(Date.now())); }catch(e){}
@@ -1445,9 +1511,13 @@ adminPanelOverlay.addEventListener('click', (e) => {
     let last = 0;
     try{ last = parseInt(localStorage.getItem(TUTORIAL_KEY) || '0', 10); }catch(e){}
     if(!last || (Date.now() - last) >= THIRTY_DAYS_MS){
+      showTutorialStep(1);
       tutorialOverlay.classList.add('show');
     }
   }
+  tNextBtn.addEventListener('click', () => showTutorialStep(2));
+  tPrevBtn.addEventListener('click', () => showTutorialStep(1));
+  tDoneBtn.addEventListener('click', closeTutorial);
   tutorialClose.addEventListener('click', closeTutorial);
   tutorialOverlay.addEventListener('click', (e) => {
     if(e.target === tutorialOverlay) closeTutorial();
