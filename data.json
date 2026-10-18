@@ -877,7 +877,7 @@
     "name": "하나손보",
     "category": "손보",
     "deadline": {},
-    "mobileAuth": "",
+    "mobileAuth": "본인명의 아닌경우 등록된 304열쇠2580종 전화시기본정보(주소,연락처)등등 으로 인콜진행가능",
     "repairMethod": "인콜로 전산에 등록된 번호 확인 후 전화하여 기본정보(주소, 연락처 등)로 진행 가능 · 2026.10.12 수정",
     "repairCheck": "",
     "phonePath": "통합고객 → 완전판매관리 → 모니터링현황 → 완전판매모니터링건별현황 → 화면왼쪽하단 재통화예정일 선택 → 시간선택",
@@ -888,19 +888,19 @@
     "mobileDate": "",
     "mobileExcl": "사망담보없을시 \n피보 모니터링제외\n본인 명의 아닌 번호인 경우 모바일모니터링 불가 · 2026.10.12 수정",
     "note": {
-      "보완": "",
-      "주의사항": "계약자 피보험자 따로따로 기재되있음 잘보기 \n미완료시 완료때까지 설계제어\n모바일모니터링 보완시 > 모바일로 다시진행가능\n불판사유 돋보기 누름 사유확인가능"
+      "주의사항": "계약자 피보험자 따로따로 기재되있음 잘보기 \n미완료시 완료때까지 설계제어\n모바일모니터링 보완시 > 모바일로 다시진행가능\n불판사유 돋보기 누름 사유확인가능",
+      "보완": ""
     },
     "directUrl": {
       "mobile": {
         "url": "https://m.hanainsure.co.kr/m/myeducar/mypage/monitoringList",
-        "extra": null,
-        "text": "https://m.hanainsure.co.kr/m/myeducar/mypage/monitoringList"
+        "text": "https://m.hanainsure.co.kr/m/myeducar/mypage/monitoringList",
+        "extra": null
       },
       "web": {
         "url": "https://m.hanainsure.co.kr/m/login?lastUrl=/m/myeducar/mypage/monitoringList",
-        "extra": null,
-        "text": "https://m.hanainsure.co.kr/m/login?lastUrl=/m/myeducar/mypage/monitoringList"
+        "text": "https://m.hanainsure.co.kr/m/login?lastUrl=/m/myeducar/mypage/monitoringList",
+        "extra": null
       },
       "date": "2025.06.19",
       "warn": "변동 확인 후 발송 필수",
@@ -908,7 +908,8 @@
     },
     "incall": "1660-4590",
     "outcall": "1566-3000",
-    "mobileRepairMethod": ""
+    "mobileRepairMethod": "",
+    "updatedAt": "2026.10.18"
   },
   {
     "name": "한화손보",
