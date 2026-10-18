@@ -416,6 +416,26 @@
   .tdot{width:7px; height:7px; border-radius:50%; background:var(--line); transition:all .15s ease;}
   .tdot.active{background:var(--accent); width:18px; border-radius:4px;}
 
+  .tutorial-icon-field{display:flex; align-items:center; gap:10px;}
+  .tutorial-icon-wrap{
+    width:34px; height:34px; flex:none; border-radius:9px; background:#FFFFFF;
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .tutorial-icon-wrap img{width:78%; height:78%; object-fit:contain;}
+  .tutorial-step .section{padding:12px 14px;}
+  .tutorial-step .section h3{font-size:calc(17px * var(--fs-mul)); margin-bottom:9px;}
+  .tutorial-step .field{padding:6px 0;}
+  .tutorial-step .field .k{font-size:calc(12px * var(--fs-mul)); padding:2px 7px; margin-bottom:4px;}
+  .tutorial-step .field .v{font-size:calc(14.5px * var(--fs-mul)); line-height:1.5;}
+  .tutorial-step .sendbox{padding:11px 12px 10px; margin:10px 0 6px;}
+  .tutorial-step .sendbox-eyebrow{font-size:calc(15px * var(--fs-mul));}
+  .tutorial-step .sendbox-hint{font-size:calc(11.5px * var(--fs-mul));}
+  .tutorial-step .send-label{font-size:calc(13px * var(--fs-mul));}
+  .tutorial-step .send-label-hint{font-size:calc(11.5px * var(--fs-mul));}
+  .tutorial-step .send-value-tel{font-size:calc(17px * var(--fs-mul));}
+  .tutorial-step .paste-preview-label{font-size:calc(12.5px * var(--fs-mul));}
+  .tutorial-step .paste-preview-box{font-size:calc(13px * var(--fs-mul)); padding:10px 12px;}
+
   .admin-pass-input{
     width:100%; border:1px solid var(--line); border-radius:10px; padding:13px 14px;
     font-family:inherit; font-size:calc(19px * var(--fs-mul)); text-align:center; letter-spacing:2px;
@@ -563,7 +583,10 @@
       <div class="tutorial-step" id="tutorialStep1">
         <div class="section">
           <h3><span class="dot"></span><span class="sec-title">핵심 기능: 복사해서 바로 전달</span></h3>
-          <div class="field"><div class="k">1</div><div class="v">메인 화면에서 <b>보험사 이름을 누르면</b> 상세 화면이 열려요</div></div>
+          <div class="field tutorial-icon-field">
+            <div class="tutorial-icon-wrap"><img id="tutorialLogoImg" alt="보험사 아이콘"></div>
+            <div class="v">메인 화면의 <b>보험사 아이콘을 누르면</b> 상세 화면이 열려요</div>
+          </div>
           <div class="field"><div class="k">2</div><div class="v">상세 화면을 내려보면 <b>'연락처 안내'</b> 칸이 있어요. 거기 복사 버튼을 누르세요</div></div>
           <div class="field"><div class="k">3</div><div class="v">카톡·문자에 붙여넣으면 보험사명이랑 번호가 자동으로 들어가요 — 아래 예시처럼요</div></div>
         </div>
@@ -1494,6 +1517,10 @@ adminPanelOverlay.addEventListener('click', (e) => {
   const tNextBtn = document.getElementById('tutorialNext');
   const tPrevBtn = document.getElementById('tutorialPrev');
   const tDoneBtn = document.getElementById('tutorialDone');
+  const tLogoImg = document.getElementById('tutorialLogoImg');
+  if(tLogoImg && typeof LOGOS !== 'undefined' && LOGOS['삼성화재']){
+    tLogoImg.src = LOGOS['삼성화재'];
+  }
   function showTutorialStep(n){
     const body = tutorialOverlay.querySelector('.quick-popup-body');
     if(body) body.scrollTop = 0;
