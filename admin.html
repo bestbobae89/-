@@ -135,7 +135,7 @@
   .src-toggle-btn{
     width:100%; border:1.5px solid var(--accent-line); border-radius:10px; padding:11px 14px;
     background:var(--surface); color:var(--ink); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px; text-decoration:none; box-sizing:border-box;
   }
   .src-toggle-btn .pill{font-size:12px; font-weight:800; padding:3px 9px; border-radius:999px; background:var(--card-bg); color:var(--ink-faint); border:1px solid var(--line);}
   .src-toggle-btn.on .pill{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
@@ -343,6 +343,14 @@ function header(){
 function renderList(){
   appEl.innerHTML = '';
   appEl.appendChild(header());
+
+  const pubWrap = el('div', {class:'src-toggle-wrap', style:'padding-top:10px;'});
+  const pubLink = el('a', {href:'./index.html', target:'_blank', rel:'noopener', class:'src-toggle-btn'}, [
+    el('span', {text:'공개 페이지 보기'}),
+    el('span', {class:'pill', text:'→'})
+  ]);
+  pubWrap.appendChild(pubLink);
+  appEl.appendChild(pubWrap);
 
   const tabWrap = el('div', {class:'tab-wrap'});
   [['전체','전체'], ['생보','생보'], ['손보','손보']].forEach(([key, label]) => {
