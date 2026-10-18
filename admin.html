@@ -292,9 +292,18 @@ function renderTokenSetup(){
       await loadData();
       renderList();
     }catch(e){
-      clearToken();
       btn.disabled = false; btn.textContent = '저장하고 시작하기';
-      showToast('연결 실패 — 토큰을 다시 확인해주세요', true);
+      const msg = String(e && e.message || '');
+      if(msg === 'token_invalid'){
+        clearToken();
+        showToast('토큰이 유효하지 않아요. 다시 만들어서 붙여넣어주세요', true);
+      }else if(msg.indexOf('read_failed_403') === 0){
+        showToast('권한이 부족해요 — 토큰 만들 때 저장소를 "' + REPO + '"로 선택했는지, Contents 권한을 Read and write로 했는지 확인해주세요', true);
+      }else if(msg.indexOf('read_failed_404') === 0){
+        showToast('저장소를 찾을 수 없어요 — 토큰 만들 때 저장소 선택을 다시 확인해주세요', true);
+      }else{
+        showToast('연결 실패 (' + (msg || '네트워크 오류') + ') — 잠시 후 다시 시도해주세요', true);
+      }
     }
   });
   box.appendChild(btn);
@@ -320,7 +329,17 @@ async function renderTokenGateOrList(){
       appEl.appendChild(header());
       const box = el('div', {class:'setup-box'});
       box.appendChild(el('h2', {text:'불러오기 실패'}));
-      box.appendChild(el('div', {class:'note', text:'네트워크 문제일 수 있어요. 새로고침 해주세요. (' + e.message + ')'}));
+      const msg = String(e.message || '');
+      let reason = '네트워크 문제일 수 있어요. 새로고침 해주세요.';
+      if(msg.indexOf('read_failed_403') === 0){
+        reason = '토큰 권한이 부족해요 — 토큰 만들 때 저장소를 "' + REPO + '"로 선택했는지, Contents 권한을 Read and write로 했는지 확인해주세요.';
+      }else if(msg.indexOf('read_failed_404') === 0){
+        reason = '저장소를 찾을 수 없어요 — 토큰 만들 때 저장소 선택을 다시 확인해주세요.';
+      }
+      box.appendChild(el('div', {class:'note', text: reason + ' (' + msg + ')'}));
+      const resetBtn = el('button', {text:'토큰 다시 설정하기', style:'margin-top:14px;'});
+      resetBtn.addEventListener('click', () => { clearToken(); renderTokenSetup(); });
+      box.appendChild(resetBtn);
       appEl.appendChild(box);
     }
   }
