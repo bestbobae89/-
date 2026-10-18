@@ -767,7 +767,7 @@
       "전화": "계약일 + 15일",
       "모바일": "계약일 + 5일"
     },
-    "mobileAuth": "신용카드→ 홈페이지에서만 인증가능\n공인인증서,휴대폰,신용카드",
+    "mobileAuth": "신용카드→ 홈페이지에서만 인증가능\n공인인증서,휴대폰,신용카드\n\n본인명의 아닌경우 등록된 핸드폰으로 전화시기본정보(주소,연락처)등등 으로 인콜진행가능",
     "repairMethod": "",
     "repairCheck": "",
     "phonePath": "전산 신청, TFA 직접가능 · 2023.12 수정",
@@ -778,26 +778,28 @@
     "mobileDate": "",
     "mobileExcl": "미성년자\n피보 모니터링제외",
     "note": {
-      "보완": "",
-      "주의사항": "1. 당일계약건은 모니터링 조회안됨 원수사 총무 반영요청 \n2. 피보험자 미성년자이면 법정대리인 전산에 기재되어있는 친권자가 콜로하여 완판 진행\n16영업일에 모니터링 안되면 계약반송됨\n 모바일모니터링 보완시 > 모바일로 다시진행가능"
+      "주의사항": "1. 당일계약건은 모니터링 조회안됨 원수사 총무 반영요청 \n2. 피보험자 미성년자이면 법정대리인 전산에 기재되어있는 친권자가 콜로하여 완판 진행\n16영업일에 모니터링 안되면 계약반송됨\n 모바일모니터링 보완시 > 모바일로 다시진행가능",
+      "보완": ""
     },
     "directUrl": {
       "mobile": {
         "url": "https://m.lotteins.co.kr/wanpan.jsp",
-        "extra": null,
-        "text": "https://m.lotteins.co.kr/wanpan.jsp"
+        "text": "https://m.lotteins.co.kr/wanpan.jsp",
+        "extra": null
       },
       "web": {
         "url": "https://lotteins.co.kr/index2.jsp",
-        "extra": null,
-        "text": "https://lotteins.co.kr/index2.jsp"
+        "text": "https://lotteins.co.kr/index2.jsp",
+        "extra": null
       },
       "date": "2025.06.19",
       "warn": "변동 확인 후 발송 필수",
       "extraNote": null
     },
     "incall": "1600-5182",
-    "outcall": "1588-3344"
+    "outcall": "1588-3344",
+    "mobileRepairMethod": "",
+    "updatedAt": "2026.10.18"
   },
   {
     "name": "메리츠",
