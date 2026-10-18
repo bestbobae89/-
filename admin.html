@@ -130,6 +130,15 @@
   .toast.err{background:var(--warn);}
 
   .token-manage{font-size:12px; color:var(--ink-faint); text-align:center; padding:10px; text-decoration:underline; cursor:pointer;}
+
+  .src-toggle-wrap{padding:4px 20px 0;}
+  .src-toggle-btn{
+    width:100%; border:1.5px solid var(--accent-line); border-radius:10px; padding:11px 14px;
+    background:var(--surface); color:var(--ink); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .src-toggle-btn .pill{font-size:12px; font-weight:800; padding:3px 9px; border-radius:999px; background:var(--card-bg); color:var(--ink-faint); border:1px solid var(--line);}
+  .src-toggle-btn.on .pill{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
 </style>
 </head>
 <body>
@@ -142,6 +151,7 @@ const REPO = '-';
 const ADMIN_PASS = '4989';
 const TOKEN_KEY = 'monitoring_admin_gh_token';
 const PASS_OK_KEY = 'monitoring_admin_pass_ok';
+const SRC_KEY = 'monitoring_show_src';
 
 function hasPassAuth(){ try{ return localStorage.getItem(PASS_OK_KEY) === '1'; }catch(e){ return false; } }
 function setPassAuth(){ try{ localStorage.setItem(PASS_OK_KEY, '1'); }catch(e){} }
@@ -327,6 +337,21 @@ function renderList(){
   const listEl = el('div', {class:'list', id:'listBody'});
   appEl.appendChild(listEl);
   renderListBody();
+
+  const srcWrap = el('div', {class:'src-toggle-wrap'});
+  const srcOn = (() => { try{ return localStorage.getItem(SRC_KEY) === '1'; }catch(e){ return false; } })();
+  const srcBtn = el('button', {type:'button', class:'src-toggle-btn' + (srcOn ? ' on' : '')});
+  srcBtn.appendChild(el('span', {text:'공개 페이지에 자료출처 태그 / 업데이트 날짜 표시'}));
+  srcBtn.appendChild(el('span', {class:'pill', text: srcOn ? 'ON' : 'OFF'}));
+  srcBtn.addEventListener('click', () => {
+    const now = !(srcBtn.classList.contains('on'));
+    try{ localStorage.setItem(SRC_KEY, now ? '1' : '0'); }catch(e){}
+    srcBtn.classList.toggle('on', now);
+    srcBtn.querySelector('.pill').textContent = now ? 'ON' : 'OFF';
+  });
+  srcWrap.appendChild(srcBtn);
+  appEl.appendChild(srcWrap);
+
   appEl.appendChild(el('div', {class:'token-manage', text:'토큰 재설정 / 로그아웃', id:'logoutBtn'}));
   document.getElementById('logoutBtn').addEventListener('click', () => {
     if(confirm('저장된 접속 정보를 지울까요? 다음에 다시 비밀번호와 토큰을 입력해야 해요.')){
