@@ -56,6 +56,15 @@
   }
   .setup-box .note{font-size:13px; color:var(--ink-faint); margin-top:10px; line-height:1.6;}
 
+  .tab-wrap{display:flex; gap:8px; padding:12px 20px 10px; background:var(--surface);}
+  .tab-btn{
+    flex:1; border:1.5px solid var(--line); border-radius:10px; padding:9px 0; background:var(--surface);
+    color:var(--ink-soft); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;
+  }
+  .tab-btn.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .tab-btn.생보.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .tab-btn.손보.active{background:var(--warn); border-color:var(--warn); color:#fff;}
+
   .search-wrap{padding:12px 20px; border-bottom:1px solid var(--line); background:var(--surface);}
   .search-wrap input{
     width:100%; border:1px solid var(--line); border-radius:10px; padding:11px 14px; font-size:16px;
@@ -63,18 +72,31 @@
   }
   .search-wrap input:focus{border-color:var(--accent);}
 
+  .cat{
+    flex:none; font-size:12px; font-weight:800; border-radius:6px; padding:3px 9px 3px 7px;
+    display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  .cat::before{content:''; width:7px; height:7px; border-radius:50%; display:inline-block;}
+  .cat.생보{background:var(--accent-soft); color:var(--accent);}
+  .cat.생보::before{background:var(--accent);}
+  .cat.손보{background:var(--warn-soft); color:var(--warn);}
+  .cat.손보::before{background:var(--warn);}
+
   .list{padding:6px 20px 28px; flex:1;}
   .row{
     width:100%; display:flex; align-items:center; gap:10px; background:transparent; border:none; border-bottom:1px solid var(--line);
     padding:14px 2px; text-align:left; cursor:pointer; font-family:inherit; color:var(--ink);
   }
-  .row .cat{flex:none; font-size:12px; font-weight:700; color:var(--ink-faint); background:var(--card-bg); border-radius:5px; padding:2px 7px;}
-  .row .name{flex:1; font-size:17px; font-weight:600;}
+  .row .name-wrap{flex:1; display:flex; flex-direction:column; gap:2px; min-width:0;}
+  .row .name{font-size:17px; font-weight:600;}
+  .row .updated{font-size:11.5px; color:var(--ink-faint); font-weight:600;}
   .row .chev{flex:none; opacity:.35;}
 
   .editor{padding:16px 20px 60px;}
-  .editor-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .editor-head{display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; gap:10px;}
   .editor-head h2{margin:0; font-size:20px; font-weight:800;}
+  .editor-head .title-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .editor-head .updated{display:block; margin-top:5px; font-size:12.5px; color:var(--ink-faint); font-weight:600;}
   .back-btn{border:none; background:var(--card-bg); color:var(--ink-soft); border-radius:8px; padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer;}
 
   .fsection{margin-bottom:22px;}
@@ -161,6 +183,13 @@ async function ghPutFile(path, newText, sha, message){
 
 let DATA = null; // array, loaded after token ready
 let currentSearch = '';
+let currentTab = '전체'; // '전체' | '생보' | '손보'
+
+function todayStr(){
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
+}
 
 function el(tag, attrs, children){
   const e = document.createElement(tag);
@@ -275,6 +304,16 @@ function header(){
 function renderList(){
   appEl.innerHTML = '';
   appEl.appendChild(header());
+
+  const tabWrap = el('div', {class:'tab-wrap'});
+  [['전체','전체'], ['생보','생보'], ['손보','손보']].forEach(([key, label]) => {
+    const cls = 'tab-btn' + (key !== '전체' ? ' ' + key : '') + (currentTab === key ? ' active' : '');
+    const btn = el('button', {type:'button', class:cls, text:label});
+    btn.addEventListener('click', () => { currentTab = key; renderList(); });
+    tabWrap.appendChild(btn);
+  });
+  appEl.appendChild(tabWrap);
+
   const searchWrap = el('div', {class:'search-wrap'});
   const searchInput = el('input', {placeholder:'보험사 검색', value: currentSearch});
   searchInput.addEventListener('input', () => { currentSearch = searchInput.value; renderListBody(); });
@@ -296,15 +335,21 @@ function renderListBody(){
   const listEl = document.getElementById('listBody');
   listEl.innerHTML = '';
   const q = currentSearch.trim().toLowerCase();
-  const items = DATA.filter(r => !q || r.name.toLowerCase().includes(q));
+  const items = DATA.filter(r =>
+    (currentTab === '전체' || r.category === currentTab) &&
+    (!q || r.name.toLowerCase().includes(q))
+  );
   if(!items.length){
     listEl.appendChild(el('div', {style:'padding:30px 4px;color:var(--ink-faint);text-align:center;', text:'검색 결과가 없어요'}));
     return;
   }
   items.forEach(r => {
     const row = el('button', {type:'button', class:'row'});
-    row.appendChild(el('span', {class:'cat', text:r.category}));
-    row.appendChild(el('span', {class:'name', text:r.name}));
+    row.appendChild(el('span', {class:'cat ' + r.category, text:r.category}));
+    const nameWrap = el('div', {class:'name-wrap'});
+    nameWrap.appendChild(el('span', {class:'name', text:r.name}));
+    if(r.updatedAt) nameWrap.appendChild(el('span', {class:'updated', text:'최종수정 ' + r.updatedAt}));
+    row.appendChild(nameWrap);
     row.appendChild(el('span', {class:'chev', text:'›'}));
     row.addEventListener('click', () => renderEditor(r.name));
     listEl.appendChild(row);
@@ -342,7 +387,13 @@ function renderEditor(name){
 
   const wrap = el('div', {class:'editor'});
   const editHead = el('div', {class:'editor-head'});
-  editHead.appendChild(el('h2', {text:r.name}));
+  const titleWrap = el('div', {});
+  const titleRow = el('div', {class:'title-row'});
+  titleRow.appendChild(el('h2', {text:r.name}));
+  titleRow.appendChild(el('span', {class:'cat ' + r.category, text:r.category}));
+  titleWrap.appendChild(titleRow);
+  titleWrap.appendChild(el('span', {class:'updated', text:r.updatedAt ? ('최종수정일 ' + r.updatedAt) : '수정 기록 없음'}));
+  editHead.appendChild(titleWrap);
   const backBtn = el('button', {class:'back-btn', text:'← 목록'});
   backBtn.addEventListener('click', renderList);
   editHead.appendChild(backBtn);
@@ -439,7 +490,8 @@ function renderEditor(name){
         repairMethod: g(f_repairMethod),
         repairCheck: g(f_repairCheck),
         mobileRepairMethod: g(f_mobileRepair),
-        note: newNote
+        note: newNote,
+        updatedAt: todayStr()
       });
       if(hasAnyUrl){ updated.directUrl = newDirectUrl; } else { delete updated.directUrl; }
 
