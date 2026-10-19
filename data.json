@@ -343,7 +343,7 @@
     "name": "미래에셋생명",
     "category": "생보",
     "deadline": {
-      "_raw": "보완예약입력은 보완통보일(D)+5영업일이내(기한초과건은 반송) · 2023.12 수정"
+      "_raw": "보완통보일(D)+5영업일까지 / 그외 미래에셋 일정달력확인"
     },
     "mobileAuth": "",
     "repairMethod": "기존진행했던 모니터링 방법으로 보완가능",
@@ -361,20 +361,22 @@
     "directUrl": {
       "mobile": {
         "url": "https://life.miraeasset.com/online/monitoring.do",
-        "extra": null,
-        "text": "https://life.miraeasset.com/online/monitoring.do"
+        "text": "https://life.miraeasset.com/online/monitoring.do",
+        "extra": null
       },
       "web": {
         "url": "http://online.miraeasset.com/monitoring.html",
-        "extra": null,
-        "text": "http://online.miraeasset.com/monitoring.html"
+        "text": "http://online.miraeasset.com/monitoring.html",
+        "extra": null
       },
       "date": "2025.07.17",
       "warn": "변동 다수, 발송 전 확인 필수",
       "extraNote": null
     },
     "incall": "1588-0220",
-    "outcall": "1588-0220"
+    "outcall": "1588-0220",
+    "mobileRepairMethod": "",
+    "updatedAt": "2026.10.19"
   },
   {
     "name": "삼성생명",
