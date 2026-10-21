@@ -48,13 +48,11 @@ jobs:
         run: |
           $f = Get-Item dist\GoodRich3jong.exe
           "size: $($f.Length)" | Add-Content out/exe_selftest.txt
-          $bytes = [IO.File]::ReadAllBytes($f.FullName)
-          $chunk = 40MB; $n = 0
-          for ($o = 0; $o -lt $bytes.Length; $o += $chunk) {
-            $len = [Math]::Min($chunk, $bytes.Length - $o)
-            [IO.File]::WriteAllBytes("out/GoodRich3jong.exe.part$n", $bytes[$o..($o + $len - 1)])
-            $n++
+          $in = [IO.File]::OpenRead($f.FullName); $buf = New-Object byte[] (40MB); $n = 0
+          while (($r = $in.Read($buf, 0, $buf.Length)) -gt 0) {
+            $out = [IO.File]::Create("out/GoodRich3jong.exe.part$n"); $out.Write($buf, 0, $r); $out.Close(); $n++
           }
+          $in.Close()
           (Get-FileHash $f.FullName -Algorithm SHA256).Hash | Set-Content out/sha256.txt
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
