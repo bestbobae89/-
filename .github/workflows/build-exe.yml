@@ -1,0 +1,43 @@
+name: build-exe
+on:
+  push:
+    branches: [3jong-exe]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Korean OCR language (for testing only)
+        shell: powershell
+        continue-on-error: true
+        run: |
+          Add-WindowsCapability -Online -Name "Language.OCR~~~ko-KR~0.0.1.0"
+          Get-WindowsCapability -Online | Where-Object { $_.Name -Like 'Language.OCR*' -and $_.State -eq 'Installed' } | Format-Table Name,State
+      - name: Install packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r app/requirements.txt -r app/requirements-ocr.txt pyinstaller
+      - name: Test with Python
+        run: python tests/ci_test.py
+      - name: Build exe
+        run: >
+          pyinstaller --noconfirm --onefile --windowed --name GoodRich3jong
+          --add-data "app/ui;ui" --add-data "app/insurers.json;."
+          --collect-all winrt --collect-all webview --collect-all pymupdf --collect-all fitz
+          --hidden-import clr --paths app app/main.py
+      - name: Test exe
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "dist\GoodRich3jong.exe" -ArgumentList "--selftest" -Wait -PassThru
+          "exit code: $($p.ExitCode)"
+          Get-Content -Encoding utf8 "dist\selftest.txt"
+          Remove-Item "dist\selftest.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GoodRich3jong
+          path: dist/GoodRich3jong.exe
+          retention-days: 14
