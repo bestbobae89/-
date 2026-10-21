@@ -3,6 +3,8 @@ on:
   push:
     branches: [3jong-exe]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: windows-latest
@@ -22,7 +24,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r app/requirements.txt -r app/requirements-ocr.txt pyinstaller
       - name: Test with Python
-        run: python tests/ci_test.py
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          $env:PYTHONIOENCODING = "utf-8"
+          python tests/ci_test.py 2>&1 | Tee-Object -FilePath out/ci_test.txt
       - name: Build exe
         run: >
           pyinstaller --noconfirm --onefile --windowed --name GoodRich3jong
@@ -34,8 +40,29 @@ jobs:
         run: |
           $p = Start-Process -FilePath "dist\GoodRich3jong.exe" -ArgumentList "--selftest" -Wait -PassThru
           "exit code: $($p.ExitCode)"
-          Get-Content -Encoding utf8 "dist\selftest.txt"
+          Get-Content -Encoding utf8 "dist\selftest.txt" | Tee-Object -FilePath out/exe_selftest.txt
           Remove-Item "dist\selftest.txt"
+          "exit code: $($p.ExitCode)" | Add-Content out/exe_selftest.txt
+      - name: Publish to branch
+        shell: pwsh
+        run: |
+          $f = Get-Item dist\GoodRich3jong.exe
+          "size: $($f.Length)" | Add-Content out/exe_selftest.txt
+          $bytes = [IO.File]::ReadAllBytes($f.FullName)
+          $chunk = 40MB; $n = 0
+          for ($o = 0; $o -lt $bytes.Length; $o += $chunk) {
+            $len = [Math]::Min($chunk, $bytes.Length - $o)
+            [IO.File]::WriteAllBytes("out/GoodRich3jong.exe.part$n", $bytes[$o..($o + $len - 1)])
+            $n++
+          }
+          (Get-FileHash $f.FullName -Algorithm SHA256).Hash | Set-Content out/sha256.txt
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan 3jong-exe-out
+          git rm -rq --cached .
+          git add out
+          git commit -q -m "build output $env:GITHUB_SHA"
+          git push -f origin 3jong-exe-out
       - uses: actions/upload-artifact@v4
         with:
           name: GoodRich3jong
