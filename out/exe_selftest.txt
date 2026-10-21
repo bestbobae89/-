@@ -1,0 +1,12 @@
+== PDF 분할·파일명 작성기: 점검 ==
+파이썬: 3.12.10
+[OK] webview
+[OK] fitz
+[OK] pypdf
+[OK] PIL
+[OK] numpy
+[OK] 글자인식: 윈도우 글자인식
+   시험 글자 읽기 결과: 계약자 홍길동
+기록 파일: C:\Users\runneradmin\AppData\Roaming\3종서류자동분할\log.txt
+exit code: 0
+size: 157880653
