@@ -36,7 +36,7 @@ jobs:
           pyinstaller --noconfirm --onefile --windowed --name GoodRich3jong
           --add-data "app/ui;ui" --add-data "app/insurers.json;." --add-data "app/logos;logos"
           --collect-all winrt --collect-all webview --collect-all pymupdf --collect-all fitz
-          --hidden-import clr --paths app app/main.py
+          --hidden-import clr --splash app/splash.png --paths app app/main.py
       - name: Test exe
         shell: pwsh
         continue-on-error: true
@@ -47,6 +47,24 @@ jobs:
           Get-Content -Encoding utf8 "dist\selftest.txt" | Tee-Object -FilePath out/exe_selftest.txt
           Remove-Item "dist\selftest.txt"
           "exit code: $($p.ExitCode)" | Add-Content out/exe_selftest.txt
+      - name: Test window opens
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $ErrorActionPreference = "Continue"
+          $t0 = Get-Date
+          $p = Start-Process -FilePath "dist\GoodRich3jong.exe" -PassThru
+          Start-Sleep -Seconds 50
+          Add-Type -AssemblyName System.Windows.Forms,System.Drawing
+          $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+          [System.Drawing.Graphics]::FromImage($bmp).CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+          $bmp.Save("out/gui.png")
+          "process exited: $($p.HasExited)" | Tee-Object -FilePath out/gui.txt
+          Get-Process | Where-Object { $_.MainWindowTitle } | Select-Object ProcessName, MainWindowTitle | Out-String | Add-Content out/gui.txt
+          Get-Content -Encoding utf8 "$env:APPDATA\3종서류자동분할\log.txt" -ErrorAction SilentlyContinue | Add-Content out/gui.txt
+          Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+          Get-Content out/gui.txt
       - name: Publish to branch
         if: always()
         shell: pwsh

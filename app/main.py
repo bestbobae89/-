@@ -256,8 +256,18 @@ def selftest():
         pass
 
 
+def _close_splash():
+    try:
+        import pyi_splash  # exe로 실행할 때만 있음
+        pyi_splash.close()
+    except Exception:
+        pass
+
+
 def main():
+    log.info("프로그램 시작 (exe=%s)", FROZEN)
     if "--selftest" in sys.argv:
+        _close_splash()
         selftest()
         return
     import webview
@@ -269,6 +279,8 @@ def main():
                                     maximized=True)
 
     def on_loaded(*_):
+        _close_splash()
+        log.info("화면 열림")
         try:  # 끌어다 놓기 (pywebview 5 이상)
             from webview.dom import DOMEventHandler
 
@@ -295,6 +307,13 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except Exception:
+    except Exception as e:
         log.exception("프로그램 오류")
+        _close_splash()
+        try:
+            import ctypes
+            ctypes.windll.user32.MessageBoxW(None, f"프로그램을 여는 중 문제가 생겼어요.\n\n{e}\n\n기록 파일: {APPDIR}\\log.txt",
+                                             "3종서류 자동 분할", 0x10)
+        except Exception:
+            pass
         raise
