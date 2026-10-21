@@ -46,10 +46,10 @@ _window = None  # pywebview 창 (Api 속성으로 두면 화면 쪽에 노출되
 
 
 class Api:
-    def __init__(self, first_file=None):
+    def __init__(self, first_files=None):
         self._s = load_settings()
-        self._doc = None
-        self._path = first_file
+        self._docs = []
+        self._paths = list(first_files or [])
         self._job = {"running": False, "done": 0, "total": 1, "msg": "", "finished": False, "error": ""}
         self._items, self._mode, self._cat = [], core.MODE_3, ""
         self._engine = None
@@ -59,15 +59,32 @@ class Api:
     # ---------- 시작 화면
     def init(self):
         canon, _ = core.load_insurers()
-        return {"out_dir": self._s.get("out_dir") or "", "first_file": self._path or "",
+        return {"out_dir": self._s.get("out_dir") or "", "first_files": self._paths,
                 "insurers": canon, "mode": self._s.get("mode") or "", "cat": self._s.get("cat") or "",
-                "pv_width": self._s.get("pv_width") or ""}
+                "pv_width": self._s.get("pv_width") or "", "zoom": self._s.get("zoom") or "w",
+                "agents": self._s.get("agents") or []}
 
     def set_pref(self, key, value):
-        if key in ("pv_width",):
+        if key in ("pv_width", "zoom"):
             self._s[key] = value
             save_settings(self._s)
         return True
+
+    def set_agents(self, names):
+        clean = []
+        for n in names or []:
+            n = (n or "").strip()
+            if n and n not in clean:
+                clean.append(n)
+        self._s["agents"] = clean
+        save_settings(self._s)
+        return clean
+
+    def page_count(self, path):
+        try:
+            return pdfio.Doc(path).count
+        except Exception:
+            return 0
 
     def open_log(self):
         try:
@@ -88,11 +105,11 @@ class Api:
             kind = webview.FileDialog.OPEN  # pywebview 5.1 이상
         except Exception:
             pass
-        r = _window.create_file_dialog(kind, file_types=("PDF 파일 (*.pdf)",))
+        r = _window.create_file_dialog(kind, allow_multiple=True, file_types=("PDF 파일 (*.pdf)",))
         if r:
-            self._path = r[0] if isinstance(r, (list, tuple)) else r
-            return self._path
-        return ""
+            self._paths = list(r) if isinstance(r, (list, tuple)) else [r]
+            return self._paths
+        return []
 
     def choose_folder(self):
         import webview
@@ -109,9 +126,9 @@ class Api:
             return d
         return ""
 
-    def set_dropped(self, path):
-        self._path = path
-        return path
+    def set_dropped(self, paths):
+        self._paths = list(paths)
+        return self._paths
 
     # ---------- 처리
     def _get_engine(self):
@@ -122,16 +139,22 @@ class Api:
                     self._engine_note = why or "글자인식 없음"
             return self._engine
 
-    def start(self, path, mode, cat):
-        path = path or self._path
-        if not path or not os.path.exists(path):
-            return {"ok": False, "msg": "PDF 파일을 찾을 수 없어요."}
-        if not path.lower().endswith(".pdf"):
-            return {"ok": False, "msg": "PDF 파일만 넣을 수 있어요."}
+    def start(self, paths, mode, cat, old=False):
+        if isinstance(paths, str):
+            paths = [paths]
+        paths = [p for p in (paths or self._paths) if p]
+        if not paths:
+            return {"ok": False, "msg": "PDF 파일을 넣어주세요."}
+        bad = [os.path.basename(p) for p in paths if not p.lower().endswith(".pdf")]
+        if bad:
+            return {"ok": False, "msg": "PDF 파일만 넣을 수 있어요: " + ", ".join(bad)}
+        miss = [os.path.basename(p) for p in paths if not os.path.exists(p)]
+        if miss:
+            return {"ok": False, "msg": "파일을 찾을 수 없어요: " + ", ".join(miss)}
         if mode not in (core.MODE_3, core.MODE_APP, core.MODE_MIX) or not cat:
             return {"ok": False, "msg": "상품 구분과 서류 종류를 골라주세요."}
-        self._path, self._mode, self._cat = path, mode, cat
-        log.info("시작: 상품구분=%s 서류종류=%s 파일=%s", cat, mode, core.mask(os.path.basename(path)))
+        self._paths, self._mode, self._cat, self._old = paths, mode, cat, bool(old) and cat == "장기"
+        log.info("시작: 상품구분=%s 서류종류=%s 구버전=%s 파일 %d개", cat, mode, self._old, len(paths))
         self._s.update({"mode": mode, "cat": cat})
         save_settings(self._s)
         self._job = {"running": True, "done": 0, "total": 1, "msg": "준비 중", "finished": False, "error": ""}
@@ -142,19 +165,33 @@ class Api:
         try:
             self._job["msg"] = "글자인식 준비 중"
             eng = self._get_engine()
-            if self._doc is not None:
-                self._doc.close()
-            self._doc = pdfio.Doc(self._path)
+            for d in self._docs:
+                d.close()
+            self._docs = []
+            items = []
+            nf = len(self._paths)
+            lm = self._logos() if self._mode == core.MODE_APP else None
+            for k, path in enumerate(self._paths):
+                doc = pdfio.Doc(path)
+                self._docs.append(doc)
 
-            def prog(d, n, m):
-                self._job.update({"done": d, "total": max(1, n), "msg": m})
+                def prog(d, n, m, k=k):
+                    pre = f"[파일 {k + 1}/{nf}] " if nf > 1 else ""
+                    self._job.update({"done": k * 1000 + int(1000 * d / max(1, n)), "total": nf * 1000,
+                                      "msg": pre + m})
 
-            an = core.Analyzer(self._doc, self._mode, self._cat, eng,
-                               last_agent=self._s.get("last_agent", ""), progress=prog,
-                               logos=self._logos() if self._mode == core.MODE_APP else None)
-            _, items = an.run()
+                log.info("파일 %d/%d: %s (%d장)", k + 1, nf, core.mask(os.path.basename(path)), doc.count)
+                an = core.Analyzer(doc, self._mode, self._cat, eng, progress=prog, logos=lm,
+                                   old=self._old, roster=self._s.get("agents") or [])
+                _, its = an.run()
+                for it in its:
+                    it["src"] = k
+                    it["file"] = os.path.basename(path)
+                items.extend(its)
+            for n, it in enumerate(items, 1):
+                it["no"] = n
             self._items = items
-            log.info("처리 완료: %s, %d건, 엔진=%s", self._path, len(items), eng and eng.name)
+            log.info("처리 완료: 파일 %d개, %d건, 엔진=%s", nf, len(items), eng and eng.name)
             self._job.update({"finished": True, "running": False, "done": 1, "total": 1})
         except Exception as e:
             log.exception("처리 실패")
@@ -164,17 +201,22 @@ class Api:
         return self._job
 
     def result(self):
-        return {"items": self._items, "names": core.make_names(self._items, self._mode, self._cat),
-                "mode": self._mode, "cat": self._cat, "file": os.path.basename(self._path or ""),
+        return {"items": self._items, "names": self.names(self._items), "old": getattr(self, "_old", False),
+                "mode": self._mode, "cat": self._cat, "files": [os.path.basename(p) for p in self._paths],
                 "ocr": (self._engine.name if self._engine else ""), "ocr_note": self._engine_note}
 
     def names(self, items):
-        return core.make_names(items, self._mode, self._cat)
+        """뺀 건은 겹침 계산에서 제외하고, 줄마다 저장될 이름을 돌려줌."""
+        active = [k for k, it in enumerate(items) if not it.get("skip")]
+        nm = core.make_names([items[k] for k in active], self._mode, self._cat)
+        out = [core.make_names([it], self._mode, self._cat)[0] for it in items]
+        for k, n in zip(active, nm):
+            out[k] = n
+        return out
 
-    def page(self, i, rot, width):
-        img = self._doc.render(int(i), 50 if width <= 160 else (110 if width <= 700 else 200))
-        if rot:
-            img = img.rotate(int(rot), expand=True)
+    def page(self, src, i, width):
+        """미리보기: 스캔한 방향 그대로 (자동 회전 없음)."""
+        img = self._docs[int(src)].render(int(i), 50 if width <= 160 else (110 if width <= 700 else 200))
         if img.width > width:
             img = img.resize((int(width), int(img.height * width / img.width)))
         return "data:image/jpeg;base64," + base64.b64encode(pdfio.to_jpeg_bytes(img)).decode()
@@ -185,22 +227,19 @@ class Api:
         if not out:
             return {"ok": False, "msg": "저장 위치를 먼저 정해주세요."}
         os.makedirs(out, exist_ok=True)
+        items = [it for it in items if not it.get("skip")]
         names = core.make_names(items, self._mode, self._cat)
         saved, errors = [], []
         for it, nm in zip(items, names):
             try:
                 p = core.unique_path(out, nm)
-                pdfio.save_pages(self._path, [(pg["i"], pg.get("rot", 0)) for pg in it["pages"]], p)
+                pdfio.save_pages(self._paths[it.get("src", 0)], [(pg["i"], 0) for pg in it["pages"]], p)
                 saved.append(os.path.basename(p))
             except PermissionError:
                 errors.append(f"{nm}: 같은 이름의 파일이 열려 있어요")
             except Exception as e:
                 log.exception("저장 실패")
                 errors.append(f"{nm}: {e}")
-        agents = [it.get("agent") for it in items if it.get("agent")]
-        if agents:
-            self._s["last_agent"] = max(set(agents), key=agents.count)
-            save_settings(self._s)
         return {"ok": not errors, "saved": saved, "errors": errors, "folder": out}
 
     def open_folder(self):
@@ -223,7 +262,7 @@ def _p(*a):
 
 def selftest():
     print = _p  # noqa
-    print("== 3종서류 자동 분할: 점검 ==")
+    print("== PDF 분할·파일명 작성기: 점검 ==")
     print("파이썬:", sys.version.split()[0])
     for m in ("webview", "fitz", "pypdf", "PIL", "numpy"):
         try:
@@ -271,10 +310,10 @@ def main():
         selftest()
         return
     import webview
-    first = next((a for a in sys.argv[1:] if a.lower().endswith(".pdf")), None)
+    first = [a for a in sys.argv[1:] if a.lower().endswith(".pdf")]
     api = Api(first)
     global _window
-    _window = webview.create_window("3종서류 자동 분할", url=os.path.join(HERE, "ui", "index.html"),
+    _window = webview.create_window("PDF 분할·파일명 작성기", url=os.path.join(HERE, "ui", "index.html"),
                                     js_api=api, width=1320, height=860, min_size=(1100, 700),
                                     maximized=True)
 
@@ -287,10 +326,10 @@ def main():
             def on_drop(e):
                 try:
                     files = e.get("dataTransfer", {}).get("files", [])
-                    path = next((f.get("pywebviewFullPath") for f in files if f.get("pywebviewFullPath")), "")
-                    if path:
-                        api.set_dropped(path)
-                        _window.evaluate_js(f"window.onPicked({json.dumps(path)})")
+                    paths = [f.get("pywebviewFullPath") for f in files if f.get("pywebviewFullPath")]
+                    if paths:
+                        api.set_dropped(paths)
+                        _window.evaluate_js(f"window.onPicked({json.dumps(paths)})")
                 except Exception:
                     log.exception("drop 처리 실패")
 

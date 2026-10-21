@@ -36,7 +36,7 @@ jobs:
           pyinstaller --noconfirm --onefile --windowed --name GoodRich3jong
           --add-data "app/ui;ui" --add-data "app/insurers.json;." --add-data "app/logos;logos"
           --collect-all winrt --collect-all webview --collect-all pymupdf --collect-all fitz
-          --hidden-import clr --splash app/splash.png --paths app app/main.py
+          --hidden-import clr --splash app/splash.png --icon app/icon.ico --paths app app/main.py
       - name: Test exe
         shell: pwsh
         continue-on-error: true

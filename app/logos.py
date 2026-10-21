@@ -58,7 +58,7 @@ class LogoMatcher:
     def ok(self):
         return cv2 is not None and bool(self.tpls)
 
-    def find(self, page_img, min_score=0.55):
+    def find(self, page_img, min_score=0.7):
         """페이지 그림에서 가장 잘 맞는 로고 → (보험사 이름, 점수)."""
         if not self.ok:
             return "", 0.0
