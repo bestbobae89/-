@@ -139,22 +139,22 @@ class Api:
                     self._engine_note = why or "글자인식 없음"
             return self._engine
 
-    def start(self, paths, mode, cat, old=False):
+    def start(self, paths, mode, cat):
         if isinstance(paths, str):
             paths = [paths]
         paths = [p for p in (paths or self._paths) if p]
         if not paths:
-            return {"ok": False, "msg": "PDF 파일을 넣어주세요."}
+            return {"ok": False, "msg": "PDF 파일을 추가하십시오."}
         bad = [os.path.basename(p) for p in paths if not p.lower().endswith(".pdf")]
         if bad:
-            return {"ok": False, "msg": "PDF 파일만 넣을 수 있어요: " + ", ".join(bad)}
+            return {"ok": False, "msg": "PDF 파일만 추가할 수 있습니다: " + ", ".join(bad)}
         miss = [os.path.basename(p) for p in paths if not os.path.exists(p)]
         if miss:
-            return {"ok": False, "msg": "파일을 찾을 수 없어요: " + ", ".join(miss)}
+            return {"ok": False, "msg": "파일을 찾을 수 없습니다: " + ", ".join(miss)}
         if mode not in (core.MODE_3, core.MODE_APP, core.MODE_MIX) or not cat:
-            return {"ok": False, "msg": "상품 구분과 서류 종류를 골라주세요."}
-        self._paths, self._mode, self._cat, self._old = paths, mode, cat, bool(old) and cat == "장기"
-        log.info("시작: 상품구분=%s 서류종류=%s 구버전=%s 파일 %d개", cat, mode, self._old, len(paths))
+            return {"ok": False, "msg": "상품 구분과 서류 종류를 선택하십시오."}
+        self._paths, self._mode, self._cat = paths, mode, cat
+        log.info("시작: 상품구분=%s 서류종류=%s 파일 %d개", cat, mode, len(paths))
         self._s.update({"mode": mode, "cat": cat})
         save_settings(self._s)
         self._job = {"running": True, "done": 0, "total": 1, "msg": "준비 중", "finished": False, "error": ""}
@@ -163,7 +163,7 @@ class Api:
 
     def _work(self):
         try:
-            self._job["msg"] = "글자인식 준비 중"
+            self._job["msg"] = "문서 분석 중…"
             eng = self._get_engine()
             for d in self._docs:
                 d.close()
@@ -182,7 +182,7 @@ class Api:
 
                 log.info("파일 %d/%d: %s (%d장)", k + 1, nf, core.mask(os.path.basename(path)), doc.count)
                 an = core.Analyzer(doc, self._mode, self._cat, eng, progress=prog, logos=lm,
-                                   old=self._old, roster=self._s.get("agents") or [])
+                                   roster=self._s.get("agents") or [])
                 _, its = an.run()
                 for it in its:
                     it["src"] = k
@@ -190,6 +190,12 @@ class Api:
                 items.extend(its)
             for n, it in enumerate(items, 1):
                 it["no"] = n
+            keys = [(it["contractor"], it["insured"], it["ins"]) for it in items]
+            for it, kk in zip(items, keys):
+                w = [x for x in it["warns"] if x != "동일상품 확인"]
+                if kk[0] and kk[2] and keys.count(kk) > 1:
+                    w.append("동일상품 확인")
+                it["warns"] = w
             self._items = items
             log.info("처리 완료: 파일 %d개, %d건, 엔진=%s", nf, len(items), eng and eng.name)
             self._job.update({"finished": True, "running": False, "done": 1, "total": 1})
@@ -201,7 +207,7 @@ class Api:
         return self._job
 
     def result(self):
-        return {"items": self._items, "names": self.names(self._items), "old": getattr(self, "_old", False),
+        return {"items": self._items, "names": self.names(self._items), 
                 "mode": self._mode, "cat": self._cat, "files": [os.path.basename(p) for p in self._paths],
                 "ocr": (self._engine.name if self._engine else ""), "ocr_note": self._engine_note}
 
@@ -225,7 +231,7 @@ class Api:
     def save(self, items):
         out = self._s.get("out_dir") or ""
         if not out:
-            return {"ok": False, "msg": "저장 위치를 먼저 정해주세요."}
+            return {"ok": False, "msg": "저장 경로를 먼저 지정하십시오."}
         os.makedirs(out, exist_ok=True)
         items = [it for it in items if not it.get("skip")]
         names = core.make_names(items, self._mode, self._cat)
@@ -236,7 +242,7 @@ class Api:
                 pdfio.save_pages(self._paths[it.get("src", 0)], [(pg["i"], 0) for pg in it["pages"]], p)
                 saved.append(os.path.basename(p))
             except PermissionError:
-                errors.append(f"{nm}: 같은 이름의 파일이 열려 있어요")
+                errors.append(f"{nm}: 같은 이름의 파일이 다른 프로그램에서 열려 있습니다")
             except Exception as e:
                 log.exception("저장 실패")
                 errors.append(f"{nm}: {e}")
@@ -351,7 +357,7 @@ if __name__ == "__main__":
         _close_splash()
         try:
             import ctypes
-            ctypes.windll.user32.MessageBoxW(None, f"프로그램을 여는 중 문제가 생겼어요.\n\n{e}\n\n기록 파일: {APPDIR}\\log.txt",
+            ctypes.windll.user32.MessageBoxW(None, f"프로그램 실행 중 오류가 발생했습니다.\n\n{e}\n\n기록 파일: {APPDIR}\\log.txt",
                                              "3종서류 자동 분할", 0x10)
         except Exception:
             pass

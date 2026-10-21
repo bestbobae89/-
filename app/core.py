@@ -167,6 +167,13 @@ def classify(img75):
     return "X", 0, dens
 
 
+def is_gray(img75):
+    """흑백 스캔인지 (색이 거의 없으면 True)."""
+    a = np.asarray(img75.convert("RGB").resize((200, 280))).astype(int)
+    sat = a.max(2) - a.min(2)
+    return float((sat > 50).mean()) < 0.002
+
+
 def kw_score(engine, img):
     t = re.sub(r"\s", "", "".join(w.text for w in engine.words(img)))
     return sum(t.count(k) for k in KW)
@@ -363,7 +370,7 @@ def pick(c):
 
 # ------------------------------------------------------------------ 청약서용 보험사 찾기
 BRANDS = {  # 자동차보험 브랜드 등 (글자 그대로)
-    "애니카": "삼성화재", "ANYCAR": "삼성화재", "하이카": "현대해상", "HICAR": "현대해상",
+    "애니카": "삼성화재", "ANYCAR": "삼성화재", "하이카": "현대해상", "HICAR": "현대해상", "HI-CAR": "현대해상", "HLCAR": "현대해상", "H1CAR": "현대해상",
     "프로미": "DB손보", "PROMY": "DB손보", "READYCAR": "메리츠", "레디카": "메리츠", "매직카": "KB손보",
     "MAGICCAR": "KB손보", "LET:CLICK": "롯데손보", "LET:SMILE": "롯데손보",
 }
@@ -419,6 +426,7 @@ def agents_in_lines(lines, page_w=None):
         t = re.sub(r"(매\s*니\s*저|지\s*점\s*장)\s*[가-힣]{2,4}", " ", text)  # 매니저·지점장 이름 제외
         for pat in (r"(?:굿\s*리\s*치|리\s*치\s*앤\s*코)[^()\n]{0,12}\(\s*([가-힣]{2,4})\s*\)",
                     r"\]\s*([가-힣]{2,4})(?![가-힣])",
+                    r"\d\s*[\]\)]\s*([가-힣]{2,4})(?![가-힣])",
                     r"(?<![가-힣])([가-힣]{2,4})\s*\(\s*(?:고유번호|[A-Z0-9]{3,})",
                     r"(?<![가-힣])([가-힣]{2,4})\s*\(?\s*" + _PHONE):
             for m in re.finditer(pat, t):
@@ -447,13 +455,12 @@ def roster_in_text(text, roster):
 
 # ------------------------------------------------------------------ 본 처리
 class Analyzer:
-    def __init__(self, doc, mode, cat, engine, last_agent="", progress=None, logos=None, old=False, roster=None):
+    def __init__(self, doc, mode, cat, engine, last_agent="", progress=None, logos=None, roster=None):
         self.doc, self.mode, self.cat, self.eng = doc, mode, cat, engine
         self.last_agent = last_agent
         self.progress = progress or (lambda *a: None)
         self.canon, self.alias = load_insurers(nonlife_only=cat in ("자동차", "일반"))
         self.logos = logos
-        self.old = bool(old) and cat == CAT_LONG
         self.roster = [r.strip() for r in (roster or []) if r and r.strip()]
 
     @property
@@ -465,14 +472,61 @@ class Analyzer:
         n = self.doc.count
         pages = []
         for i in range(n):
-            self.progress(i, n * 2, f"{n}장 중 {i + 1}장 살펴보는 중")
+            self.progress(i, n * 2, f"페이지 분석 중 ({i + 1}/{n})")
             img = self.doc.render(i, 75)
             kind, r, dens = classify(img)
             info = {"i": i, "kind": kind, "rot": r, "dens": round(dens, 4)}
             if kind in ("G", "C") and self.mode != MODE_APP:
                 info["kind"], info["rot"] = self._confirm_title(i, kind, r)
+            elif kind == "X" and self.mode != MODE_APP and is_gray(img):
+                info["kind"], info["rot"] = self._title_kind(i)
+                info["bw"] = True
             pages.append(info)
         return pages
+
+    def _title_text(self, i, r, dpi=110, frac=.13):
+        base = rot(self.doc.render(i, dpi), r)
+        W, H = base.size
+        return re.sub(r"\s", "", "".join(w.text for w in self.eng.words(base.crop((0, 0, W, int(H * frac))))))
+
+    def _title_kind(self, i):
+        """흑백 스캔: 색으로 못 찾으니 제목 글자로 고지의무확인서/동의서 찾기."""
+        if self.eng is None:
+            return "X", 0
+        try:
+            for r in (0, 180):
+                t = self._title_text(i, r)
+                if "고지의무" in t or ("계약체결" in t and "확인서" in t):
+                    return "G", r
+                if ("신용" in t and "동의" in t) or "개인정보" in t or "(신용)정보" in t:
+                    return "C", r
+                if len(re.findall(r"[가-힣]", t)) >= 6:
+                    break
+        except Exception as e:
+            log.warning("흑백 제목 확인 실패 p%d: %s", i + 1, e)
+        return "X", 0
+
+    def _b_type(self, p, rotate_check=True):
+        """비교설명서 종류: 장기(가로 양식) / 자동차 / 일반 / None(모름)."""
+        if self.eng is None or p is None or p["kind"] != "X":
+            return None
+        try:
+            g = self.doc.render(p["i"], 100).convert("L")
+            t0 = re.sub(r"\s", "", "".join(w.text for w in self.eng.words(g)))
+            if "자동차보험" in t0 and "비교" in t0:
+                return "자동차"
+            if "일반보험" in t0 and "비교" in t0:
+                return "일반"
+            if not rotate_check:
+                return None
+            s0 = sum(t0.count(k) for k in KW)
+            s1 = max(kw_score(self.eng, g.rotate(-90, expand=True)), kw_score(self.eng, g.rotate(90, expand=True)))
+            if s1 > s0 + 2:
+                return "장기"
+            return None
+        except Exception as e:
+            log.warning("비교설명서 판단 실패 p%d: %s", p["i"] + 1, e)
+            return None
 
     def _confirm_title(self, i, kind, r):
         if self.eng is None:
@@ -522,7 +576,7 @@ class Analyzer:
         items = []
         for k, grp in enumerate(groups):
             self.progress(self.doc.count + (k + 1) * self.doc.count // max(1, len(groups)), self.doc.count * 2,
-                          f"{len(groups)}건 중 {k + 1}번째 건 이름 읽는 중")
+                          f"정보 인식 중 ({k + 1}/{len(groups)}건)")
             try:
                 it = self.extract(grp)
             except Exception:
@@ -537,6 +591,10 @@ class Analyzer:
             for it in items:
                 if not it["agent"] and common:
                     it["agent"] = common
+        keys = [(it["contractor"], it["insured"], it["ins"]) for it in items]
+        for it, k in zip(items, keys):
+            if k[0] and k[2] and keys.count(k) > 1:
+                it["warns"].append("동일상품 확인")
         for it in items:
             it["agent"] = snap_agent(it["agent"], self.roster)
             log.info("No.%d %s장 [%s] 보험사=%s 취급자=%s 계약자=%s 피보험자=%s 경고=%s",
@@ -548,7 +606,7 @@ class Analyzer:
 
     def blank_item(self, grp):
         return {"pages": [{"i": p["i"], "rot": p["rot"], "kind": p["kind"]} for p in grp],
-                "ver": "구" if self.old else "", "ins": "", "agent": "", "contractor": "", "insured": "",
+                "ver": "", "ins": "", "agent": "", "contractor": "", "insured": "",
                 "product": "", "count": len(grp), "warns": []}
 
     def extract(self, grp):
@@ -556,7 +614,7 @@ class Analyzer:
         kinds = [p["kind"] for p in grp]
         nblank = kinds.count("blank")
         if nblank:
-            it["warns"].append(f"빈 장 같아요 ({nblank}장)")
+            it["warns"].append("빈 페이지 포함")
         if self.mode == MODE_APP:
             self._extract_app(grp, it)
             return it
@@ -564,21 +622,54 @@ class Analyzer:
         G = next((p for p in grp if p["kind"] == "G"), None)
         C = next((p for p in reversed(grp) if p["kind"] == "C"), None)
         if G is None:
-            it["warns"].append("고지의무확인서 빠짐")
+            it["warns"].append("고지의무확인서 누락")
         if C is None:
-            it["warns"].append("동의서 빠짐")
-        n_b = 2 if (self.is_long and not self.old) else 1  # 비교설명서 장수
-        if self.mode == MODE_3:
-            nb = kinds.count("X")
-            if nb == 0:
-                it["warns"].append("비교설명서 빠짐")
-            elif nb != n_b:
-                it["warns"].append(f"장수 확인 ({len(grp) - nblank}장, {n_b + 2}장이어야 해요)")
+            it["warns"].append("개인정보동의서 누락")
+        if kinds.count("C") > 1:
+            it["warns"].append("2건 병합 의심")
+        if C is not None:
+            ci = grp.index(C)
+            before = [p for p in grp[:ci] if p["kind"] == "X"]
         else:
-            if C is not None and grp.index(C) == 0:
-                it["warns"].append("비교설명서 빠짐")
-            if len(grp) - nblank <= n_b + 2:
-                it["warns"].append("청약서 없음?")
+            before = [p for p in grp if p["kind"] == "X"]
+        b_near = before[::-1]  # 동의서 바로 앞부터
+        btype = self._b_type(b_near[0], rotate_check=not (self.mode == MODE_3 and self.is_long)) if b_near else None
+        if btype and btype != self.cat:
+            it["warns"].append("상품구분 불일치(확인필요)")
+            log.info("상품구분 불일치: 선택=%s 비교설명서=%s", self.cat, btype)
+        if self.mode == MODE_3:
+            nb = len(before) if C is not None else kinds.count("X")
+            if nb == 0:
+                it["warns"].append("비교설명서 누락")
+            elif self.is_long:
+                if nb == 2:
+                    it["ver"] = "신"
+                elif nb == 1:
+                    it["ver"] = "구"
+                else:
+                    it["warns"].append("2건 병합 의심" if nb > 2 else "버전 판별 불가")
+            elif nb > 1:
+                it["warns"].append("2건 병합 의심")
+        else:  # 청약서+3종
+            if not b_near:
+                it["warns"].append("비교설명서 누락")
+            elif self.is_long:
+                b1 = btype == "장기"
+                b2 = self._b_type(b_near[1]) == "장기" if len(b_near) > 1 else False
+                if btype is None:
+                    it["warns"].append("버전 판별 불가")
+                elif b1 and b2:
+                    it["ver"] = "신"
+                elif b1:
+                    it["ver"] = "구"
+            n3 = 4 if (self.is_long and it["ver"] != "구") else 3
+            if len(grp) - nblank <= n3:
+                it["warns"].append("청약서 누락")
+        if it["ver"] == "구" and self.is_long:
+            it["warns"].append("구버전 적용")
+        if self.is_long and not it["ver"] and "버전 판별 불가" not in it["warns"] and self.mode != MODE_APP \
+                and "비교설명서 누락" not in it["warns"]:
+            it["warns"].append("버전 판별 불가")
         if self.eng is None:
             return it
         self._extract_3jong(G, C, it)
@@ -600,7 +691,17 @@ class Analyzer:
                         break
                     ins_raw = ins_raw or raw
             else:
-                log.info("고지의무확인서 맨 위 칸을 못 찾음 p%d", G["i"] + 1)
+                log.info("고지의무확인서 맨 위 칸을 못 찾음 p%d — 글자로 읽기", G["i"] + 1)
+                W0, H0 = img.size
+                lines0 = group_lines(self.eng.words(img.crop((0, 0, W0, int(H0 * .25)))))
+                c0 = names_next_to(lines0, r"계\s*약\s*자", exclude_pat=r"피\s*보", page_w=W0)
+                if c0:
+                    it["contractor"] = pick(c0)
+                for t0, _ in lines0:
+                    m0 = re.search(r"보\s*험\s*사\s*명?\s*[:：]?\s*(.+)", t0)
+                    if m0:
+                        ins_raw = m0.group(1)
+                        break
             body = rot(self.doc.render(G["i"], 200), G["rot"])
             W, H = body.size
             lines = "\n".join(t for t, _ in group_lines(self.eng.words(body.crop((0, int(H * .5), W, H)))))
@@ -617,8 +718,8 @@ class Analyzer:
                 tt = t.replace(" ", "")
                 if "회사" in tt and not ins_raw2:
                     ins_raw2 = re.split(r"[:：;]", t, 1)[-1]
-                elif "상품" in tt and not it["product"]:
-                    it["product"] = short_product(re.split(r"[:：;]", t, 1)[-1])
+                elif "상품" in tt and not it.get("product_hint"):
+                    it["product_hint"] = short_product(re.split(r"[:：;]", t, 1)[-1])
             ins_d = self._insured(img)
             if ins_d is None:
                 pass
@@ -636,11 +737,9 @@ class Analyzer:
         n2, s2 = match_insurer(ins_raw2, self.alias)
         it["ins"] = n1 if s1 >= s2 else n2
         if not it["ins"]:
-            log.info("보험사 못 읽음: 고지='%s' 동의서='%s'", ins_raw, ins_raw2)
+            log.info("보험사 못 읽음: 고지='%s' 동의서='%s'", mask(ins_raw), mask(ins_raw2))
         if it["insured"] == it["contractor"]:
             it["insured"] = ""
-        if it["insured"]:
-            it["warns"].append("피보험자 확인")
 
     def _insured(self, img):
         """동의서 아래 표 '피보험자' 칸: 비어 있으면 None, 글씨가 있는데 못 읽으면 '?', 읽으면 이름."""
@@ -704,10 +803,10 @@ class Analyzer:
                     it["ins"], how = insurer_from_text(full, self.alias, self.cat in ("자동차", "일반"))
                     if it["ins"]:
                         log.info("보험사: %s (%s)", it["ins"], how)
-                if not it["product"]:
+                if not it.get("product_hint"):
                     m = re.search(r"상\s*품\s*명\s*[:：]?\s*(.+)", full)
                     if m:
-                        it["product"] = short_product(m.group(1))
+                        it["product_hint"] = short_product(m.group(1))
                 if it["contractor"] and it["agent"] and it["ins"]:
                     break
         if first_img is None:
@@ -734,25 +833,23 @@ def _safe(s):
 
 
 def make_names(items, mode, cat):
-    prefix = [cat or "장기"] if mode == MODE_APP else [(cat or "장기") + "3종"]
-    base = []
+    """파일 이름: 접두어_보험사_취급자_계약자[_피보험자][_상품명][_구][_장수]
+    접두어: 3종 → 3종 / 청약서 → 장기·자동차·일반 / 청약서+3종 → 장기3종·자동차3종·일반3종"""
+    cat = cat or CAT_LONG
+    prefix = "3종" if mode == MODE_3 else (cat if mode == MODE_APP else cat + "3종")
+    names, used = [], {}
     for it in items:
-        parts = prefix + [it.get("ins") or "보험사", it.get("agent") or "취급자", it.get("contractor") or "계약자"]
+        parts = [prefix, it.get("ins") or "보험사", it.get("agent") or "취급자", it.get("contractor") or "계약자"]
         ins_d = (it.get("insured") or "").strip()
         if ins_d and ins_d != it.get("contractor"):
             parts.append(ins_d)
-        base.append([_safe(p) for p in parts])
-    keys = ["_".join(b) for b in base]
-    names, used = [], {}
-    for it, b, k in zip(items, base, keys):
-        parts = list(b)
-        if keys.count(k) > 1 and it.get("product"):
-            parts.append(_safe(it["product"]))
-        if it.get("ver") == "구" and cat == CAT_LONG:
+        if (it.get("product") or "").strip():
+            parts.append(it["product"])
+        if it.get("ver") == "구" and cat == CAT_LONG and mode != MODE_APP:
             parts.append("구")
         if mode == MODE_MIX:
             parts.append(str(it.get("count") or len(it.get("pages", []))))
-        nm = "_".join(p for p in parts if p)
+        nm = "_".join(p for p in (_safe(x) for x in parts) if p)
         n = used.get(nm, 0) + 1
         used[nm] = n
         names.append(nm + (f"({n})" if n > 1 else "") + ".pdf")

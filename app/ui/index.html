@@ -1,61 +1,68 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><title>PDF 분할·파일명 작성기</title>
 <style>
-:root{--ink:#1d2433;--sub:#667085;--line:#d9dde4;--line2:#eef0f3;--bg:#f3f4f6;--hd:#1f2a44;--pri:#2b4c7e;--pri-h:#22406b;--pri-l:#e8eef7;
---warn:#b54708;--warn-l:#fff6e5;--off:#9aa1ad;--pvw:46%}
+:root{--ink:#1d2433;--sub:#667085;--line:#d9dde4;--line2:#eef0f3;--bg:#eef0f3;--hd:#1f2a44;--pri:#2b4c7e;--pri-h:#22406b;--pri-l:#e8eef7;
+--warn:#b54708;--warn-l:#fff6e5;--ok:#1e7a46;--ok-l:#e9f6ee;--off:#9aa1ad;--pvw:44%}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","맑은 고딕","Noto Sans CJK KR",sans-serif;font-size:13px;overflow:hidden}
-button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 .screen{display:none;height:100vh;flex-direction:column}.screen.on{display:flex}
-.bar{background:var(--hd);color:#fff;height:42px;display:flex;align-items:center;padding:0 18px;gap:16px;flex-shrink:0}
-.bar b{font-size:14px}.bar .ctx{color:#c7d0e0;font-size:12px}.bar .r{margin-left:auto;display:flex;gap:6px}
-.lnk{color:#d5dcea;font-size:12px;border:1px solid #3c4a6b;padding:4px 10px;border-radius:3px;background:transparent;cursor:pointer}
+.bar{background:var(--hd);color:#fff;height:44px;display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0}
+.bar b{font-size:14.5px}.bar .ctx{color:#b8c3d6;font-size:12px}.bar .r{margin-left:auto;display:flex;gap:6px}
+.lnk{color:#e1e7f2;font-size:12px;border:1px solid #475673;padding:5px 12px;border-radius:3px;background:transparent;cursor:pointer}
 .lnk:hover{background:#2a3858}
 .main{flex:1;min-height:0;padding:14px 18px;display:flex;flex-direction:column;gap:12px;overflow:auto}
 .panel{background:#fff;border:1px solid var(--line);border-radius:4px}
-.ph{padding:8px 14px;border-bottom:1px solid var(--line);font-weight:700;font-size:12.5px;color:#344054;display:flex;align-items:center;gap:8px;min-height:38px}
+.ph{padding:8px 14px;border-bottom:1px solid var(--line);font-weight:700;font-size:12.5px;color:#344054;display:flex;align-items:center;gap:8px;min-height:40px}
+.ph .n{font-weight:400;color:var(--sub)}
 .pb{padding:10px 14px}
 .row{display:flex;align-items:center;gap:14px;padding:4px 0;flex-wrap:wrap}
 .lab{width:64px;color:var(--sub);font-size:12.5px;flex-shrink:0}
 .seg{display:inline-flex;border:1px solid #b9c0cc;border-radius:3px;overflow:hidden}
-.seg button{padding:6px 16px;border:0;border-right:1px solid #b9c0cc;background:#fff;cursor:pointer}
+.seg button{padding:7px 18px;border:0;border-right:1px solid #b9c0cc;background:#fff;cursor:pointer}
 .seg button:last-child{border-right:0}.seg button:hover{background:#f3f5f9}
 .seg button.on{background:var(--pri);color:#fff;font-weight:700}
-.tog{border:1px solid #b9c0cc;border-radius:3px;padding:5px 11px;background:#fff;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
-.tog input{margin:0}.tog.dis{color:var(--off);cursor:default;background:#f7f8fa}
 .hint{color:var(--sub);font-size:12px}.hint.err{color:var(--warn);font-weight:600}
 .mono{font-family:Consolas,"Noto Sans Mono CJK KR",monospace;font-size:12px}
 .btn{border:1px solid #b9c0cc;background:#fff;border-radius:3px;padding:6px 14px;cursor:pointer;white-space:nowrap}
 .btn:hover{background:#f3f5f9}.btn:disabled{opacity:.45;cursor:default}
 .btn.p{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:700}.btn.p:hover{background:var(--pri-h)}
-.btn.s{padding:3px 9px;font-size:12px}.btn.on{background:var(--pri);border-color:var(--pri);color:#fff}
-.chip{font-size:11.5px;border:1px solid var(--line);border-radius:2px;padding:1px 6px;color:#475467;background:#f7f8fa;font-weight:400}
+.btn.s{padding:3px 10px;font-size:12px}.btn.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.big{font-size:16px;padding:12px 40px}
+.btn.lg{font-size:14px;padding:8px 20px;font-weight:700}
+.btn.danger{background:#b42318;border-color:#b42318;color:#fff;font-weight:700}
 table{border-collapse:collapse;width:100%}
 th{position:sticky;top:0;z-index:1;background:#f7f8fa;color:#475467;font-weight:600;text-align:left;font-size:12px;padding:7px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:3px 6px;border-bottom:1px solid var(--line2);white-space:nowrap}
-.minus{width:20px;height:20px;border:1px solid #b9c0cc;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;color:#475467;font-weight:700;background:#fff;cursor:pointer;padding:0;line-height:1}
+.minus{width:22px;height:22px;border:1px solid #b9c0cc;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;color:#475467;font-weight:700;background:#fff;cursor:pointer;padding:0;line-height:1}
 .minus:hover{border-color:var(--pri);color:var(--pri)}
 .drop{border:1px dashed #a9b2c0;border-radius:4px;padding:14px;color:var(--sub);background:#fafbfc;text-align:center}
+.drop.big{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-size:14px;margin:12px}
 .drop.over{border-color:var(--pri);background:var(--pri-l);color:var(--pri)}
-.path{display:flex;align-items:center;gap:8px}.path .v{flex:1;border:1px solid var(--line);border-radius:3px;padding:6px 10px;background:#fafbfc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.path{display:flex;align-items:center;gap:8px}.path .v{flex:1;border:1px solid var(--line);border-radius:3px;padding:7px 10px;background:#fafbfc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .path .v.empty{color:var(--warn)}
-.foot{display:flex;justify-content:space-between;align-items:center;padding:9px 18px;background:#fff;border-top:1px solid var(--line);flex-shrink:0;gap:10px}
+.setw{display:flex}.setw .l{flex:1;padding:10px 14px}.setw .r{width:220px;border-left:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px}
+.foot{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;background:#fff;border-top:1px solid var(--line);flex-shrink:0;gap:10px}
 .center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 .pbar{width:420px;height:6px;background:#dde1e8;border-radius:3px;overflow:hidden}.pbar i{display:block;height:100%;width:0;background:var(--pri);transition:width .3s}
-.cnt{display:flex;gap:6px;align-items:center;font-size:12.5px;color:#475467}.cnt b{color:var(--ink)}.cnt .w{color:var(--warn)}
+.cnt{font-size:12.5px;color:#475467}.cnt b{color:var(--ink)}
+.wbadge{border:1px solid #f3c27a;background:var(--warn-l);color:var(--warn);font-weight:700;padding:5px 12px;border-radius:3px}
+.okbadge{border:1px solid #a6dbb8;background:var(--ok-l);color:var(--ok);font-weight:700;padding:5px 12px;border-radius:3px}
+.navpos{font-size:17px;font-weight:700;min-width:64px;text-align:center}
 .banner{background:var(--warn-l);color:var(--warn);border:1px solid #f3d3a4;border-radius:3px;padding:7px 12px;font-weight:600}
 .split{flex:1;min-height:0;display:flex}
 .tblw{flex:1;min-width:0;overflow:auto}
 .gut{width:7px;background:#e4e7ec;border-left:1px solid var(--line);border-right:1px solid var(--line);cursor:col-resize;flex-shrink:0}
 .gut:hover,.gut.drag{background:#c9d4e6}
 .pv{width:var(--pvw);min-width:300px;display:flex;flex-direction:column;background:#fff;flex-shrink:0}
-.pv .ph{font-weight:600}
+.pv .ph{font-weight:700}
 .vp{flex:1;min-height:0;background:#e9ebef;overflow:auto;position:relative}
 .vp img{display:block;margin:10px auto;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
 .vp.fitp{display:flex;align-items:center;justify-content:center}
 .vp.fitp img{max-width:calc(100% - 20px);max-height:calc(100% - 20px);margin:0}
-.pvc{display:flex;align-items:center;gap:5px;padding:6px 10px;border-top:1px solid var(--line);flex-wrap:wrap}
-.pvc select{border:1px solid #b9c0cc;border-radius:3px;padding:2px 4px;background:#fff}
+.pvc{display:flex;align-items:center;gap:6px;padding:7px 10px;border-top:1px solid var(--line);flex-wrap:wrap}
+.zb{width:30px;height:28px;font-size:17px;font-weight:700;padding:0}
+.zl{min-width:78px;text-align:center;font-weight:700}
 .thumbs{display:flex;gap:5px;padding:6px 10px;border-top:1px solid var(--line);overflow-x:auto;min-height:60px}
 .thumbs img{height:46px;border:1px solid var(--line);cursor:pointer;background:#fff}.thumbs img.on{outline:2px solid var(--pri)}
 tr.w td{background:var(--warn-l)}
@@ -63,69 +70,78 @@ tr.sel td{background:var(--pri-l)!important}
 tr.out td{color:var(--off)}tr.out td input,tr.out td select{color:var(--off);text-decoration:line-through}
 td input,td select{border:1px solid transparent;border-radius:2px;padding:3px 4px;background:transparent;width:100%;min-width:52px}
 td select{min-width:92px;cursor:pointer}
+td select.ver{min-width:46px}
 td input:hover,td select:hover{border-color:#cdd5df;background:#fff}
 td input:focus,td select:focus{border-color:var(--pri);background:#fff;outline:0}
 td input.miss,td select.miss{border-color:#e9b46a;background:#fffaf0}
 td input::placeholder{color:#a3aab5}
 td.no{color:var(--sub);width:30px}
-.st{font-size:12px;font-weight:600}.st.ok{color:#475467}.st.w{color:var(--warn)}
-.ack{font-size:11px;padding:0 5px;margin-left:5px;border:1px solid #e3c591;border-radius:2px;background:#fff;color:var(--warn);cursor:pointer}
-td.fn{color:#475467;font-size:12px;max-width:340px;overflow:hidden;text-overflow:ellipsis}
+.st{font-size:12px;font-weight:600;cursor:default}.st.ok{color:#475467}.st.w{color:var(--warn)}.st.x{color:var(--off);font-weight:400}
+.ack{font-size:11px;padding:0 6px;margin-left:6px;border:1px solid #e3c591;border-radius:2px;background:#fff;color:var(--warn);cursor:pointer}
+td.fn{color:#475467;font-size:12px;max-width:360px;overflow:hidden;text-overflow:ellipsis}
+.tip{position:fixed;z-index:30;display:none;max-width:320px;background:#fff;border:1px solid #9aa1ad;border-radius:3px;box-shadow:0 4px 14px rgba(0,0,0,.18);padding:8px 11px;font-size:12px;line-height:1.6;white-space:normal;color:var(--ink)}
+.tip b{color:var(--warn);display:block}
 .modal{position:fixed;inset:0;background:rgba(20,28,40,.38);display:none;align-items:center;justify-content:center;z-index:20}
 .modal.on{display:flex}
+#modal{z-index:25}
 .box{width:440px;background:#fff;border:1px solid #9aa1ad;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
-.mh{padding:11px 16px;border-bottom:1px solid var(--line);font-weight:700;font-size:13.5px}
+.mh{padding:11px 16px;border-bottom:1px solid var(--line);font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:8px}
 .mb{padding:14px 16px;line-height:1.7;white-space:pre-line}.mf{padding:10px 16px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:6px;background:#fafbfc}
-.kv{display:grid;grid-template-columns:80px 1fr;gap:4px 10px;white-space:normal}.kv span{color:var(--sub)}
-.roster{max-height:300px;overflow:auto;border:1px solid var(--line2);margin-top:8px}
-.roster td{padding:5px 8px}
+.kv{display:grid;grid-template-columns:80px 1fr;gap:4px 10px;white-space:normal;margin-top:8px}.kv span{color:var(--sub)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;max-height:220px;overflow:auto;border:1px solid var(--line2);padding:8px;margin-top:8px;align-content:flex-start;min-height:60px}
+.chip2{border:1px solid #c9ced6;border-radius:2px;padding:3px 4px 3px 9px;background:#f7f8fa;display:inline-flex;align-items:center;gap:4px}
+.chip2.hit{background:#fff3c4;border-color:#e6c75a}
+.chip2 button{border:0;background:transparent;cursor:pointer;color:#667085;font-size:14px;line-height:1;padding:0 3px}
+.chip2 button:hover{color:#b42318}
 .inp{flex:1;border:1px solid var(--line);border-radius:3px;padding:6px 10px}
 .inp:focus{outline:0;border-color:var(--pri)}
+textarea.inp{width:100%;height:70px;resize:vertical}
 </style></head>
 <body>
 
 <section class="screen on" id="start">
- <div class="bar"><b>PDF 분할·파일명 작성기</b><div class="r"><button class="lnk" data-act="roster">취급자 명단</button><button class="lnk" data-act="log">기록 폴더</button></div></div>
+ <div class="bar"><b>PDF 분할·파일명 작성기</b><div class="r"><button class="lnk" data-act="roster">명단 관리</button></div></div>
  <div class="main">
-  <div class="panel"><div class="ph">처리 설정</div><div class="pb">
+  <div class="panel"><div class="pb path"><div class="lab">저장 경로</div><div class="v" id="outDir"></div><button class="btn" id="chooseOut">변경</button><button class="btn" id="openOut">폴더 열기</button></div></div>
+  <div class="panel"><div class="ph">작업 설정</div><div class="setw"><div class="l">
    <div class="row"><div class="lab">상품 구분</div><div class="seg" id="cat"><button data-v="장기">장기</button><button data-v="자동차">자동차</button><button data-v="일반">일반</button></div></div>
-   <div class="row"><div class="lab">서류 종류</div><div class="seg" id="kind"><button data-v="청약서">청약서</button><button data-v="청약서+3종">청약서+3종</button><button data-v="3종">3종</button></div>
-    <label class="tog" id="oldTog"><input type="checkbox" id="old">구버전</label><span class="hint" id="kindHint"></span></div>
-  </div></div>
-  <div class="panel" style="flex:1;min-height:180px;display:flex;flex-direction:column">
-   <div class="ph">넣은 파일 <span class="chip" id="fileChip">0개</span><span style="margin-left:auto"></span><button class="btn s" id="addFile">파일 추가</button><button class="btn s" id="clearFiles">모두 빼기</button></div>
-   <div style="flex:1;overflow:auto"><table><thead><tr><th style="width:34px"></th><th style="width:40px">No</th><th>파일 이름</th><th style="width:80px">장수</th><th style="width:260px">위치</th></tr></thead><tbody id="fileBody"></tbody></table>
-    <div class="pb"><div class="drop" id="drop">스캔 PDF를 여기로 끌어다 놓거나 [파일 추가]를 누르세요. 여러 개를 한 번에 넣을 수 있어요.</div></div></div>
+   <div class="row"><div class="lab">서류 종류</div><div class="seg" id="kind"><button data-v="청약서">청약서</button><button data-v="청약서+3종">청약서+3종</button><button data-v="3종">3종</button></div><span class="hint" id="kindHint"></span></div>
+   <div class="row"><div class="lab"></div><span class="hint" id="verHint">장기 3종서류는 페이지 수로 신/구버전을 자동 판별합니다. 구버전은 파일명 끝에 _구가 붙습니다.</span></div>
+  </div><div class="r"><button class="btn p big" id="startBtn">파일 분할</button><span class="hint" id="startInfo"></span></div></div></div>
+  <div class="panel" style="flex:1;min-height:200px;display:flex;flex-direction:column">
+   <div class="ph">대상 파일 <span class="n" id="fileChip">0개</span><span style="margin-left:auto"></span><button class="btn s" id="addFile">파일 추가</button><button class="btn s" id="clearFiles">전체 삭제</button></div>
+   <div id="fileWrap" style="flex:1;overflow:auto;display:flex;flex-direction:column">
+    <table id="fileTbl"><thead><tr><th style="width:36px"></th><th style="width:40px">No</th><th>파일 이름</th><th style="width:80px">장수</th><th style="width:280px">위치</th></tr></thead><tbody id="fileBody"></tbody></table>
+    <div class="pb" id="dropWrap"><div class="drop" id="drop">PDF 파일을 이곳에 끌어다 놓거나 [파일 추가]를 누르십시오. 여러 파일을 한 번에 추가할 수 있습니다.</div></div>
+   </div>
   </div>
-  <div class="panel"><div class="pb path"><div class="lab">저장 위치</div><div class="v" id="outDir"></div><button class="btn" id="chooseOut">변경</button><button class="btn" id="openOut">폴더 열기</button></div></div>
+  <div class="hint err" id="startHint" style="text-align:right;min-height:16px"></div>
  </div>
- <div class="foot"><span class="hint" id="startHint"></span><button class="btn p" id="startBtn">시작</button></div>
 </section>
 
 <section class="screen" id="work">
  <div class="bar"><b>PDF 분할·파일명 작성기</b><span class="ctx" id="workCtx"></span></div>
- <div class="main"><div class="center"><div style="font-size:15px;font-weight:700">서류를 읽고 있어요</div><div class="pbar"><i id="pbar"></i></div><div class="hint" id="workMsg"></div></div></div>
+ <div class="main"><div class="center"><div style="font-size:15px;font-weight:700">문서 분석 중…</div><div class="pbar"><i id="pbar"></i></div><div class="hint" id="workMsg"></div></div></div>
 </section>
 
 <section class="screen" id="review">
- <div class="bar"><b>PDF 분할·파일명 작성기</b><span class="ctx" id="rvCtx"></span><div class="r"><button class="lnk" data-act="roster">취급자 명단</button><button class="lnk" data-act="log">기록 폴더</button></div></div>
+ <div class="bar"><b>PDF 분할·파일명 작성기</b><span class="ctx" id="rvCtx"></span><div class="r"><button class="lnk" data-act="roster">명단 관리</button></div></div>
  <div class="main" style="gap:10px;overflow:hidden">
-  <div style="display:flex;align-items:center;gap:10px"><div class="cnt" id="cnt"></div>
-   <div style="margin-left:auto;display:flex;gap:6px;align-items:center"><span class="hint" id="navPos"></span><button class="btn s" id="prevW">◀ 이전 확인 필요</button><button class="btn s" id="nextW">다음 확인 필요 ▶</button></div></div>
+  <div style="display:flex;align-items:center;gap:10px;min-height:34px"><div class="cnt" id="cnt"></div>
+   <div style="margin-left:auto;display:flex;gap:8px;align-items:center" id="navW"><span class="wbadge" id="wBadge"></span><button class="btn" id="prevW">◀ 이전 건</button><span class="navpos" id="navPos"></span><button class="btn" id="nextW">다음 건 ▶</button></div>
+   <div style="margin-left:auto;display:none" id="navOk"><span class="okbadge">✔ 저장 가능</span></div></div>
   <div class="banner" id="banner" style="display:none"></div>
   <div class="panel split"><div class="tblw"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
    <div class="gut" id="gut" title="끌어서 크기 조절"></div>
    <div class="pv"><div class="ph"><span id="pvTitle"></span><span class="hint" id="pvSub" style="font-weight:400"></span></div>
     <div class="vp" id="vp"><img id="pvImg" alt=""></div>
     <div class="thumbs" id="thumbs"></div>
-    <div class="pvc"><button class="btn s" id="pgPrev">◀</button><span id="pgPos" style="min-width:56px;text-align:center"></span><button class="btn s" id="pgNext">▶</button>
-     <span style="width:8px"></span><button class="btn s" id="goTop">위</button><button class="btn s" id="goBot">아래</button>
-     <span style="margin-left:auto"></span><button class="btn s" id="zOut">−</button>
-     <select id="zoom"><option value="p">쪽 맞춤</option><option value="w">폭 맞춤</option><option value="125">125%</option><option value="150">150%</option><option value="200">200%</option></select>
-     <button class="btn s" id="zIn">+</button></div>
+    <div class="pvc"><button class="btn s" id="pgPrev">◀</button><span id="pgPos" style="min-width:60px;text-align:center"></span><button class="btn s" id="pgNext">▶</button>
+     <span style="width:8px"></span><button class="btn s" id="goTop">맨 위</button><button class="btn s" id="goBot">맨 아래</button>
+     <span style="margin-left:auto"></span><button class="btn zb" id="zOut" title="축소">−</button><span class="zl" id="zLabel"></span><button class="btn zb" id="zIn" title="확대">+</button></div>
    </div></div>
  </div>
- <div class="foot"><button class="btn" id="toStart">처음으로</button><span class="hint">칸을 누르면 바로 고칠 수 있어요. 맨 왼쪽 [−]를 누르면 저장에서 빠져요.</span><button class="btn p" id="saveBtn">저장</button></div>
+ <div class="foot"><button class="btn lg" id="toStart">← 뒤로가기</button><span class="hint">칸을 눌러 바로 수정할 수 있습니다. 왼쪽 [−]를 누르면 저장 대상에서 제외됩니다.</span><button class="btn p lg" id="saveBtn">저장</button></div>
 </section>
 
 <section class="screen" id="done">
@@ -133,60 +149,68 @@ td.fn{color:#475467;font-size:12px;max-width:340px;overflow:hidden;text-overflow
  <div class="main"><div class="center">
   <div style="font-size:17px;font-weight:700" id="doneTitle"></div><div class="hint" id="doneDir"></div>
   <div class="panel" style="width:640px;max-width:92%;max-height:300px;overflow:auto;padding:10px 14px;line-height:1.8;font-size:12.5px;color:#475467" id="doneFiles"></div>
-  <div style="display:flex;gap:6px"><button class="btn p" id="openDir">폴더 열기</button><button class="btn" id="again">처음으로</button></div>
+  <div style="display:flex;gap:6px"><button class="btn p" id="openDir">폴더 열기</button><button class="btn" id="again">처음 화면</button></div>
  </div></div>
 </section>
 
 <div class="modal" id="modal"><div class="box"><div class="mh" id="mT"></div><div class="mb" id="mB"></div><div class="mf" id="mF"></div></div></div>
-<div class="modal" id="rosterM"><div class="box" style="width:380px"><div class="mh">취급자 명단</div>
- <div class="mb" style="white-space:normal;padding:12px 16px"><div class="hint" style="margin-bottom:8px">여기 있는 이름은 서류에서 가장 먼저 찾아요.</div>
-  <div style="display:flex;gap:6px"><input class="inp" id="rosterIn" placeholder="이름 입력"><button class="btn" id="rosterAdd">추가</button></div>
-  <div class="roster"><table><tbody id="rosterBody"></tbody></table></div></div>
- <div class="mf"><button class="btn p" id="rosterClose">닫기</button></div></div></div>
+<div class="modal" id="rosterM"><div class="box" style="width:500px"><div class="mh">명단 관리 <span class="hint" id="rCount" style="font-weight:400"></span></div>
+ <div class="mb" style="white-space:normal;padding:12px 16px">
+  <div style="display:flex;gap:8px;align-items:center"><input class="inp" id="rSearch" placeholder="이름 검색"><span class="hint" id="rHit"></span></div>
+  <div class="chips" id="rChips"></div>
+  <div style="font-weight:700;margin:12px 0 6px">일괄 추가</div>
+  <textarea class="inp" id="rBulk" placeholder="이름 입력"></textarea>
+  <div style="display:flex;align-items:flex-start;gap:8px;margin-top:6px"><span class="hint" style="flex:1">예) 홍길동, 김철수, 이영희 — 쉼표 또는 줄바꿈으로 구분하여 여러 명을 한 번에 추가합니다.</span><button class="btn p" id="rAdd" disabled>추가</button></div>
+ </div>
+ <div class="mf"><button class="btn" id="rosterClose">닫기</button></div></div></div>
+<div class="tip" id="tip"></div>
 <datalist id="agentList"></datalist>
 
 <script>
 const $=s=>document.querySelector(s);
-const S={cat:'',mode:'',old:false,files:[],outDir:'',insurers:[],agents:[],items:[],names:[],srcFiles:[],sel:0,pg:0,zoom:'w',ocr:'',ocrNote:'',pvTarget:'top'};
+const S={cat:'',mode:'',files:[],outDir:'',insurers:[],agents:[],items:[],names:[],srcFiles:[],sel:0,pg:0,zoom:'w',ocr:'',ocrNote:'',pvTarget:'top'};
 let api=null;
-function show(id){document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('on',e.id===id))}
+function show(id){document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('on',e.id===id));hideTip()}
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function base(p){return String(p).split(/[\\/]/).pop()}
 function dir(p){const a=String(p).split(/[\\/]/);a.pop();return a.join('\\')}
 function modal(title,body,buttons,html){return new Promise(res=>{$('#mT').textContent=title;if(html)$('#mB').innerHTML=body;else $('#mB').textContent=body;const f=$('#mF');f.innerHTML='';
- buttons.forEach(([label,val,primary])=>{const b=document.createElement('button');b.className='btn'+(primary?' p':'');b.textContent=label;b.onclick=()=>{$('#modal').classList.remove('on');res(val)};f.appendChild(b)});
- $('#modal').classList.add('on');setTimeout(()=>{const p=f.querySelector('.p');p&&p.focus()},30)})}
-const hasOld=()=>S.cat==='장기'&&S.mode!=='청약서';
+ buttons.forEach(([label,val,cls])=>{const b=document.createElement('button');b.className='btn'+(cls?' '+(cls===true?'p':cls):'');b.textContent=label;b.onclick=()=>{$('#modal').classList.remove('on');res(val)};f.appendChild(b)});
+ $('#modal').classList.add('on');setTimeout(()=>{const p=f.querySelector('.p,.danger');p&&p.focus()},30)})}
+async function errorModal(title,msg){const r=await modal(title,msg+'\n\n문제가 계속되면 기록 폴더의 log.txt 파일을 전달하십시오.',[['기록 폴더 열기','log'],['확인',1,true]]);if(r==='log')api.open_log()}
+const hasVer=()=>S.cat==='장기'&&S.mode!=='청약서';
+function prefix(){return S.mode==='3종'?'3종':S.mode==='청약서'?S.cat:S.cat+'3종'}
 
-function exampleName(){if(!S.cat||!S.mode)return'';const c=S.cat;
- if(S.mode==='청약서')return`${c}_보험사_취급자_계약자.pdf`;
- return`${c}3종_보험사_취급자_계약자${S.old&&hasOld()?'_구':''}${S.mode==='청약서+3종'?'_전체장수':''}.pdf`}
+function exampleName(){if(!S.cat||!S.mode)return'';return`${prefix()}_보험사_취급자_계약자${S.mode==='청약서+3종'?'_장수':''}.pdf`}
 function renderStart(){
  document.querySelectorAll('#cat button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.cat));
  document.querySelectorAll('#kind button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.mode));
- const ok=hasOld();$('#old').disabled=!ok;$('#oldTog').classList.toggle('dis',!ok);if(!ok)$('#old').checked=false;S.old=ok&&$('#old').checked;
  $('#kindHint').innerHTML=S.cat&&S.mode?`파일 이름 예) <span class="mono">${esc(exampleName())}</span>`:'';
+ $('#verHint').style.visibility=hasVer()?'visible':'hidden';
  const fb=$('#fileBody');fb.innerHTML='';let total=0;
  S.files.forEach((f,i)=>{total+=f.pages||0;const tr=document.createElement('tr');
-  tr.innerHTML=`<td><button class="minus" title="빼기">−</button></td><td>${i+1}</td><td>${esc(base(f.path))}</td><td>${f.pages?f.pages+'장':'…'}</td><td class="hint">${esc(dir(f.path))}</td>`;
+  tr.innerHTML=`<td><button class="minus" title="목록에서 삭제">−</button></td><td>${i+1}</td><td>${esc(base(f.path))}</td><td>${f.pages?f.pages+'장':'…'}</td><td class="hint">${esc(dir(f.path))}</td>`;
   tr.querySelector('.minus').onclick=()=>{S.files.splice(i,1);renderStart()};fb.appendChild(tr)});
- $('#fileChip').textContent=`${S.files.length}개`+(total?` · 총 ${total}장`:'');
- $('#drop').style.display=S.files.length>6?'none':'';
- const o=$('#outDir');o.textContent=S.outDir||'아직 정하지 않았어요 — [변경]을 눌러 정해주세요';o.classList.toggle('empty',!S.outDir);
- const miss=!S.cat?'상품 구분을 골라주세요.':!S.mode?'서류 종류를 골라주세요.':!S.files.length?'PDF 파일을 넣어주세요.':!S.outDir?'저장 위치를 정해주세요.':'';
- const h=$('#startHint');h.textContent=miss||'설정을 확인한 뒤 [시작]을 누르세요.';h.classList.toggle('err',!!miss);
- $('#startBtn').disabled=!!miss;
+ const empty=!S.files.length;
+ $('#fileTbl').style.display=empty?'none':'';
+ $('#dropWrap').style.display=empty?'contents':'';
+ $('#drop').classList.toggle('big',empty);
+ $('#fileChip').textContent=`${S.files.length}개`;
+ const o=$('#outDir');o.textContent=S.outDir||'저장 경로가 지정되지 않았습니다. [변경]을 눌러 지정하십시오.';o.classList.toggle('empty',!S.outDir);
+ $('#startInfo').textContent=`파일 ${S.files.length}개 · 총 ${total}장`;
+ const miss=!S.cat?'상품 구분을 선택하십시오.':!S.mode?'서류 종류를 선택하십시오.':!S.files.length?'대상 파일을 추가하십시오.':!S.outDir?'저장 경로를 지정하십시오.':'';
+ $('#startHint').textContent=miss;$('#startBtn').disabled=!!miss;
 }
 document.querySelectorAll('#cat button').forEach(b=>b.onclick=()=>{S.cat=b.dataset.v;renderStart()});
 document.querySelectorAll('#kind button').forEach(b=>b.onclick=()=>{S.mode=b.dataset.v;renderStart()});
-$('#old').onchange=()=>renderStart();
 window.onPicked=async(paths)=>{if(!Array.isArray(paths))paths=[paths];
- const bad=paths.filter(p=>!/\.pdf$/i.test(p));if(bad.length)await modal('PDF 파일만 넣을 수 있어요',bad.map(base).join('\n'),[['확인',1,true]]);
+ const bad=paths.filter(p=>!/\.pdf$/i.test(p));if(bad.length)await modal('파일 추가','PDF 파일만 추가할 수 있습니다.\n\n'+bad.map(base).join('\n'),[['확인',1,true]]);
  for(const p of paths.filter(p=>/\.pdf$/i.test(p))){if(S.files.some(f=>f.path===p))continue;const f={path:p,pages:0};S.files.push(f);
   api.page_count(p).then(n=>{f.pages=n;renderStart()})}
  renderStart()};
 $('#addFile').onclick=async()=>{const p=await api.choose_file();if(p&&p.length)window.onPicked(p)};
-$('#clearFiles').onclick=()=>{S.files=[];renderStart()};
+$('#clearFiles').onclick=async()=>{if(!S.files.length)return;if(await modal('전체 삭제','대상 파일 목록을 모두 삭제하시겠습니까?\n(원본 파일은 삭제되지 않습니다.)',[['취소',0],['삭제',1,'danger']])){S.files=[];renderStart()}};
+$('#drop').onclick=()=>{if(!S.files.length)$('#addFile').onclick()};
 $('#chooseOut').onclick=async()=>{const d=await api.choose_folder();if(d){S.outDir=d;renderStart()}};
 $('#openOut').onclick=()=>{if(S.outDir)api.open_folder()};
 const drop=$('#drop');
@@ -195,64 +219,101 @@ document.addEventListener('dragleave',e=>{if(!e.relatedTarget)drop.classList.rem
 document.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over')});
 $('#startBtn').onclick=async()=>{
  const total=S.files.reduce((a,f)=>a+(f.pages||0),0);
- const kind=S.mode+(hasOld()?(S.old?' (구버전)':' (신버전)'):'');
- const ok=await modal('이대로 시작할까요?',`<div class="kv"><span>상품 구분</span><b>${esc(S.cat)}</b><span>서류 종류</span><b>${esc(kind)}</b><span>파일</span><b>${S.files.length}개${total?` · 총 ${total}장`:''}</b><span>저장 위치</span><b>${esc(S.outDir)}</b></div>`,[['취소',0],['시작',1,true]],true);
+ const ok=await modal('파일 분할',`아래 설정으로 파일을 분할하시겠습니까?<div class="kv"><span>상품 구분</span><b>${esc(S.cat)}</b><span>서류 종류</span><b>${esc(S.mode)}</b><span>대상 파일</span><b>${S.files.length}개 · 총 ${total}장</b><span>저장 경로</span><b>${esc(S.outDir)}</b></div>`,[['취소',0],['파일 분할',1,true]],true);
  if(!ok)return;
- const r=await api.start(S.files.map(f=>f.path),S.mode,S.cat,S.old);
- if(!r.ok){await modal('시작할 수 없어요',r.msg,[['확인',1,true]]);return}
- $('#workCtx').textContent=ctxText();show('work');poll()};
-function ctxText(){return `${S.cat} · ${S.mode}${hasOld()&&S.old?' · 구버전':''} · 파일 ${S.files.length}개`}
+ const r=await api.start(S.files.map(f=>f.path),S.mode,S.cat);
+ if(!r.ok){await modal('파일 분할',r.msg,[['확인',1,true]]);return}
+ $('#workCtx').textContent=ctxText();$('#pbar').style.width='0';$('#workMsg').textContent='';show('work');poll()};
+function ctxText(){return `${S.cat} · ${S.mode} · 파일 ${S.files.length}개`}
 async function poll(){
  const j=await api.progress();$('#pbar').style.width=Math.round(100*j.done/j.total)+'%';$('#workMsg').textContent=j.msg||'';
  if(!j.finished){setTimeout(poll,350);return}
- if(j.error){await modal('처리 중 문제가 생겼어요',j.error+'\n\n같은 문제가 계속되면 [기록 폴더]의 log.txt를 보내주세요.',[['처음 화면으로',1,true]]);show('start');return}
+ if(j.error){await errorModal('처리 오류','문서 처리 중 오류가 발생했습니다.\n'+j.error);show('start');return}
  const r=await api.result();S.items=r.items;S.names=r.names;S.srcFiles=r.files||[];S.ocr=r.ocr;S.ocrNote=r.ocr_note;
+ S.items.forEach(it=>{it.warns=(it.warns||[]).filter(w=>w!=='동일상품 확인');it.product=''});
  S.sel=firstWarn();S.pg=defaultPage(S.items[S.sel]);S.pvTarget='top';renderReview();show('review')}
 
+const TIPS={
+ '구버전 적용':'비교설명서가 1장이라 구버전으로 판별했습니다. 파일명 끝에 _구가 붙습니다. 맞으면 [확인]을 누르십시오. 다르면 버전 칸에서 변경하십시오.',
+ '버전 판별 불가':'페이지 수로 신/구버전을 판별할 수 없습니다. 원본을 보고 버전 칸에서 선택하십시오.',
+ '상품구분 불일치(확인필요)':'선택한 상품 구분과 이 건의 비교설명서 양식이 다릅니다. 맞으면 [확인]을 누르고, 아니면 [−]로 제외한 뒤 해당 상품 구분으로 따로 작업하십시오.',
+ '동일상품 확인':'같은 계약자·피보험자·보험사 건이 2건 이상입니다. 상품명을 입력하면 파일명에 추가되고, 입력하지 않으면 (2)가 붙습니다.',
+ '2건 병합 의심':'한 건에 개인정보동의서가 여러 장이거나 페이지가 너무 많습니다. 2건이 하나로 묶였을 수 있으니 원본을 확인하십시오.',
+ '빈 페이지 포함':'내용이 거의 없는 페이지가 포함되어 있습니다. 원본을 확인하십시오.',
+ '개인정보동의서 누락':'개인(신용)정보처리동의서를 찾지 못했습니다.',
+ '고지의무확인서 누락':'고지의무확인서를 찾지 못했습니다. 다음 건과 묶였을 수 있습니다.',
+ '비교설명서 누락':'비교·설명 확인서를 찾지 못했습니다.',
+ '청약서 누락':'청약서 페이지가 없거나 너무 적습니다.',
+ '계약자명 미인식':'계약자명을 인식하지 못했습니다. 원본을 보고 입력하십시오.',
+ '취급자명 미인식':'취급자명을 인식하지 못했습니다. 원본을 보고 입력하십시오.',
+ '보험사명 미인식':'보험사명을 인식하지 못했습니다. 목록에서 선택하십시오.',
+ '피보험자 칸 확인':'피보험자 칸에 글씨가 있으나 인식하지 못했습니다. 원본을 보고 입력하십시오.',
+ '읽기 오류':'이 건을 읽는 중 오류가 발생했습니다. 원본을 보고 직접 입력하십시오.',
+ '제외됨':'저장 대상에서 제외되었습니다. [+]를 누르면 다시 포함됩니다.'};
+function dupKey(it){return [it.contractor,it.insured,it.ins,(it.product||'').trim()].join('|')}
+function dupSet(){const c={};S.items.forEach(it=>{if(it.skip||!it.contractor||!it.ins)return;const k=dupKey(it);c[k]=(c[k]||0)+1});return c}
+let DUP={};
 function warnsOf(it){if(it.skip||it.ack)return[];const w=[...(it.warns||[])];
- if(!it.ins)w.push('보험사 확인');if(!it.contractor)w.push('계약자 확인');if(!it.agent)w.push('취급자 확인');return w}
-function firstWarn(){const i=S.items.findIndex(it=>warnsOf(it).length);return i<0?0:i}
+ if(!it.ins)w.push('보험사명 미인식');if(!it.contractor)w.push('계약자명 미인식');if(!it.agent)w.push('취급자명 미인식');
+ if(hasVer()&&!it.ver&&!w.includes('버전 판별 불가'))w.push('버전 판별 불가');
+ if(it.ver&&w.includes('버전 판별 불가')&&it.verSet)w.splice(w.indexOf('버전 판별 불가'),1);
+ if(it.contractor&&it.ins&&(DUP[dupKey(it)]||0)>1)w.push('동일상품 확인');return w}
+function firstWarn(){DUP=dupSet();const i=S.items.findIndex(it=>warnsOf(it).length);return i<0?0:i}
 function cols(){const c=[['skip',''],['no','No'],['ins','보험사'],['agent','취급자'],['contractor','계약자'],['insured','피보험자'],['product','상품명']];
+ if(hasVer())c.push(['ver','버전']);
  if(S.mode==='청약서+3종')c.push(['count','장수']);c.push(['st','상태'],['fn','저장될 파일 이름']);return c}
 const TOPF=new Set(['ins','contractor','insured','product']);
 function renderReview(){
+ DUP=dupSet();
  $('#rvCtx').textContent=ctxText();
- $('#thead').innerHTML=cols().map(([k,l])=>`<th${k==='skip'?' style="width:30px"':''}>${l}</th>`).join('');
+ $('#thead').innerHTML=cols().map(([k,l])=>`<th${k==='skip'?' style="width:34px"':''}>${l}</th>`).join('');
  $('#agentList').innerHTML=S.agents.map(a=>`<option value="${esc(a)}">`).join('');
  const tb=$('#tbody');tb.innerHTML='';
  const opts='<option value=""></option>'+S.insurers.map(n=>`<option>${esc(n)}</option>`).join('');
  S.items.forEach((it,idx)=>{const tr=document.createElement('tr');tr.dataset.idx=idx;
   tr.innerHTML=cols().map(([k])=>{
-   if(k==='skip')return`<td><button class="minus" title="저장에서 빼기/되살리기">${it.skip?'+':'−'}</button></td>`;
+   if(k==='skip')return`<td><button class="minus" title="저장 대상에서 제외/포함">${it.skip?'+':'−'}</button></td>`;
    if(k==='no')return`<td class="no">${it.no}</td>`;
    if(k==='ins')return`<td style="width:110px"><select data-k="ins">${opts}</select></td>`;
    if(k==='agent')return`<td style="min-width:104px"><input data-k="agent" list="agentList"></td>`;
    if(k==='contractor')return`<td style="min-width:96px"><input data-k="contractor"></td>`;
    if(k==='insured')return`<td style="min-width:90px"><input data-k="insured" placeholder="같음"></td>`;
-   if(k==='product')return`<td style="width:96px"><input data-k="product" placeholder="—" title="같은 사람·같은 보험사가 겹칠 때만 파일 이름에 붙어요"></td>`;
+   if(k==='product')return`<td style="width:110px"><input data-k="product" placeholder="—" title="입력하면 파일명에 추가됩니다"></td>`;
+   if(k==='ver')return`<td style="width:58px"><select class="ver" data-k="ver"><option value="">?</option><option value="신">신</option><option value="구">구</option></select></td>`;
    if(k==='count')return`<td>${it.count}장</td>`;
    if(k==='st')return`<td class="st"></td>`;
    return`<td class="fn"></td>`}).join('');
   tr.querySelectorAll('[data-k]').forEach(el=>{el.value=it[el.dataset.k]||'';
-   const on=()=>{it[el.dataset.k]=el.value.trim();it.ack=false;refreshRow(tr,it);updateSummary();scheduleNames()};
+   const on=()=>{const k=el.dataset.k;it[k]=el.value.trim();if(k==='ver'){it.verSet=true;it.warns=(it.warns||[]).filter(w=>w!=='버전 판별 불가'&&w!=='구버전 적용')}
+    it.ack=false;refreshAll()};
    el.addEventListener('input',on);el.addEventListener('change',on);
    el.addEventListener('focus',()=>{S.pvTarget=el.dataset.k==='agent'?'bottom':TOPF.has(el.dataset.k)?'top':S.pvTarget;select(idx,false,true)})});
-  tr.querySelector('.minus').onclick=e=>{e.stopPropagation();it.skip=!it.skip;e.target.textContent=it.skip?'+':'−';refreshRow(tr,it);updateSummary();scheduleNames()};
-  tr.addEventListener('click',e=>{if(e.target.classList.contains('ack')){it.ack=true;refreshRow(tr,it);updateSummary();return}if(e.target.closest('input,select,button'))return;select(idx,false)});
+  tr.querySelector('.minus').onclick=e=>{e.stopPropagation();it.skip=!it.skip;e.target.textContent=it.skip?'+':'−';refreshAll()};
+  tr.addEventListener('click',e=>{if(e.target.classList.contains('ack')){it.ack=true;hideTip();refreshRow(tr,it);updateSummary();return}if(e.target.closest('input,select,button'))return;select(idx,false)});
   tb.appendChild(tr);refreshRow(tr,it)});
  const b=$('#banner');
- if(!S.ocr){b.style.display='';b.textContent='글자인식을 쓸 수 없어서 이름을 읽지 못했어요. 나누기는 됐으니 오른쪽 원본을 보고 칸에 직접 입력해 주세요.'}else b.style.display='none';
- $('#zoom').value=S.zoom;updateSummary();select(S.sel,true,true)}
+ if(!S.ocr){b.style.display='';b.textContent='글자 인식을 사용할 수 없어 정보를 읽지 못했습니다. 분할은 완료되었으므로 오른쪽 원본을 보고 직접 입력하십시오.'}else b.style.display='none';
+ updateSummary();select(S.sel,true,true)}
+function refreshAll(){DUP=dupSet();document.querySelectorAll('#tbody tr').forEach(tr=>refreshRow(tr,S.items[+tr.dataset.idx]));updateSummary();scheduleNames()}
 function refreshRow(tr,it){const idx=+tr.dataset.idx,w=warnsOf(it);
  tr.classList.toggle('w',w.length>0);tr.classList.toggle('out',!!it.skip);tr.classList.toggle('sel',idx===S.sel);
- const st=tr.querySelector('.st');st.className='st '+(w.length?'w':'ok');
- st.innerHTML=it.skip?'저장 안 함':w.length?`${esc(w[0])}${w.length>1?` 외 ${w.length-1}`:''}<button class="ack" title="확인했으면 누르세요">확인</button>`:(it.ack?'확인함':'정상');
- st.title=w.join(', ');const fn=tr.querySelector('.fn');fn.textContent=S.names[idx]||'';fn.title=S.names[idx]||'';
+ const st=tr.querySelector('.st');st.className='st '+(it.skip?'x':w.length?'w':'ok');
+ st.innerHTML=it.skip?'제외됨':w.length?`${esc(w[0])}${w.length>1?` 외 ${w.length-1}`:''}<button class="ack">확인</button>`:(it.ack?'확인 완료':'정상');
+ st.dataset.tips=JSON.stringify(it.skip?['제외됨']:w);
+ const fn=tr.querySelector('.fn');fn.textContent=S.names[idx]||'';fn.title=S.names[idx]||'';
  tr.querySelectorAll('[data-k=ins],[data-k=contractor],[data-k=agent]').forEach(el=>el.classList.toggle('miss',!it.skip&&!it[el.dataset.k]))}
-function updateSummary(){const n=S.items.length,sk=S.items.filter(it=>it.skip).length,wn=S.items.filter(it=>warnsOf(it).length).length;
- $('#cnt').innerHTML=`총 <b>${n}건</b> · 저장 <b>${n-sk}건</b> · 뺀 것 <b>${sk}건</b>`+(wn?` · <span class="w">확인 필요 <b class="w">${wn}건</b></span>`:' · 확인 필요 없음');
- const wl=S.items.map((it,i)=>warnsOf(it).length?i:-1).filter(i=>i>=0),pos=wl.indexOf(S.sel);
- $('#navPos').textContent=wn?`${pos>=0?pos+1:'-'} / ${wn}`:'';$('#prevW').disabled=$('#nextW').disabled=!wn;
+const tip=$('#tip');
+function hideTip(){tip.style.display='none'}
+document.addEventListener('mouseover',e=>{const st=e.target.closest&&e.target.closest('td.st');
+ if(!st){hideTip();return}const list=JSON.parse(st.dataset.tips||'[]');if(!list.length){hideTip();return}
+ tip.innerHTML=list.map(k=>`<b>${esc(k)}</b>${esc(TIPS[k]||'')}`).join('<div style="height:6px"></div>')+(list[0]!=='제외됨'?'<div class="hint" style="margin-top:6px">확인을 마쳤으면 [확인]을 누르십시오.</div>':'');
+ const r=st.getBoundingClientRect();tip.style.display='block';
+ tip.style.left=Math.min(window.innerWidth-330,r.left)+'px';tip.style.top=(r.bottom+4+tip.offsetHeight>window.innerHeight?r.top-tip.offsetHeight-4:r.bottom+4)+'px'});
+function updateSummary(){const n=S.items.length,sk=S.items.filter(it=>it.skip).length;
+ const wl=S.items.map((it,i)=>warnsOf(it).length?i:-1).filter(i=>i>=0),wn=wl.length,pos=wl.indexOf(S.sel);
+ $('#cnt').innerHTML=`전체 <b>${n}건</b> · 저장 대상 <b>${n-sk}건</b> · 제외 <b>${sk}건</b>`;
+ $('#navW').style.display=wn?'flex':'none';$('#navOk').style.display=wn?'none':'block';
+ $('#wBadge').textContent=`⚠ 확인 필요 ${wn}건`;$('#navPos').textContent=`${pos>=0?pos+1:'-'} / ${wn}`;
  $('#saveBtn').textContent=`${n-sk}개 저장`;$('#saveBtn').disabled=!(n-sk)}
 let nameTimer=null;
 function scheduleNames(){clearTimeout(nameTimer);nameTimer=setTimeout(async()=>{S.names=await api.names(S.items);
@@ -266,10 +327,12 @@ function select(idx,scroll,keepTarget){if(idx<0||idx>=S.items.length)return;
 const imgCache={};
 async function pageImg(src,p,w){const k=`${src}_${p.i}_${w}`;if(!imgCache[k])imgCache[k]=await api.page(src,p.i,w);return imgCache[k]}
 let pvToken=0;
+const ZL=['p','w','125','150','200'],ZN={p:'페이지 맞춤',w:'너비 맞춤','125':'125%','150':'150%','200':'200%'};
 async function renderPreview(){const it=S.items[S.sel];if(!it)return;const tok=++pvToken;
  $('#pvTitle').textContent=`No.${it.no} 원본`;
  $('#pvSub').textContent=` · ${it.pages.length}장`+(S.srcFiles.length>1?` · ${it.file||''}`:'');
  if(S.pg>=it.pages.length)S.pg=0;$('#pgPos').textContent=`${S.pg+1} / ${it.pages.length}쪽`;
+ $('#zLabel').textContent=ZN[S.zoom]||'너비 맞춤';
  const th=$('#thumbs');
  if(th.dataset.for!==String(S.sel)){th.dataset.for=S.sel;th.innerHTML='';
   it.pages.forEach((p,k)=>{const im=document.createElement('img');im.onclick=()=>{S.pg=k;renderPreview()};th.appendChild(im);
@@ -286,9 +349,7 @@ $('#pgPrev').onclick=()=>{const it=S.items[S.sel];S.pg=(S.pg-1+it.pages.length)%
 $('#pgNext').onclick=()=>{const it=S.items[S.sel];S.pg=(S.pg+1)%it.pages.length;renderPreview()};
 $('#goTop').onclick=()=>{S.pvTarget='top';$('#vp').scrollTop=0;renderPreview()};
 $('#goBot').onclick=()=>{S.pvTarget='bottom';const v=$('#vp');v.scrollTop=v.scrollHeight;renderPreview()};
-const ZL=['p','w','125','150','200'];
-function setZoom(z){S.zoom=z;$('#zoom').value=z;api.set_pref('zoom',z);renderPreview()}
-$('#zoom').onchange=e=>setZoom(e.target.value);
+function setZoom(z){S.zoom=z;api.set_pref('zoom',z);renderPreview()}
 $('#zIn').onclick=()=>setZoom(ZL[Math.min(ZL.length-1,ZL.indexOf(S.zoom)+1)]);
 $('#zOut').onclick=()=>setZoom(ZL[Math.max(0,ZL.indexOf(S.zoom)-1)]);
 $('#vp').addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();(e.deltaY<0?$('#zIn'):$('#zOut')).onclick()},{passive:false});
@@ -301,32 +362,42 @@ $('#prevW').onclick=()=>jumpWarn(-1);$('#nextW').onclick=()=>jumpWarn(1);
  g.addEventListener('mousedown',e=>{drag=true;g.classList.add('drag');e.preventDefault()});
  window.addEventListener('mousemove',e=>{if(!drag)return;const r=body.getBoundingClientRect();const pct=Math.max(25,Math.min(75,(r.right-e.clientX)/r.width*100));document.documentElement.style.setProperty('--pvw',pct.toFixed(1)+'%')});
  window.addEventListener('mouseup',()=>{if(!drag)return;drag=false;g.classList.remove('drag');api.set_pref('pv_width',getComputedStyle(document.documentElement).getPropertyValue('--pvw').trim());renderPreview()})})();
-$('#toStart').onclick=async()=>{if(await modal('처음 화면으로 갈까요?','지금 고친 내용은 저장되지 않아요.',[['취소',0],['처음으로',1,true]]))reset()};
+$('#toStart').onclick=async()=>{if(await modal('뒤로가기','수정한 내용이 저장되지 않습니다.\n뒤로 가시겠습니까?',[['취소',0],['뒤로가기',1,true]]))back()};
 $('#saveBtn').onclick=async()=>{
  if(!S.outDir){const d=await api.choose_folder();if(!d)return;S.outDir=d}
  const wn=S.items.filter(it=>warnsOf(it).length).length,n=S.items.filter(it=>!it.skip).length;
- if(wn&&!(await modal('확인이 필요한 건이 남아 있어요',`확인 필요 ${wn}건이 남아 있어요.\n그래도 ${n}개를 저장할까요?`,[['돌아가서 확인',0],['저장',1,true]])))return;
+ if(wn&&!(await modal('저장','확인 필요 건이 '+wn+'건 남아 있습니다.\n'+n+'개 파일을 저장하시겠습니까?',[['돌아가서 확인',0],['저장',1,true]])))return;
  $('#saveBtn').disabled=true;$('#saveBtn').textContent='저장 중…';
  const r=await api.save(S.items);updateSummary();
- if(!r.ok&&!(r.saved&&r.saved.length)){await modal('저장하지 못했어요',(r.msg||'')+(r.errors||[]).join('\n'),[['확인',1,true]]);return}
- $('#doneTitle').textContent=r.errors.length?`${r.saved.length}개 저장, ${r.errors.length}개 실패`:`${r.saved.length}개 파일을 저장했어요`;
+ if(!r.ok&&!(r.saved&&r.saved.length)){await errorModal('저장 오류',(r.msg||'파일을 저장하지 못했습니다.')+'\n'+(r.errors||[]).join('\n'));return}
+ $('#doneTitle').textContent=r.errors.length?`${r.saved.length}개 저장 완료, ${r.errors.length}개 실패`:`${r.saved.length}개 파일이 저장되었습니다.`;
  $('#doneDir').textContent=r.folder;const list=[...r.errors.map(e=>'실패: '+e),...r.saved];
  $('#doneFiles').innerHTML=list.map(esc).join('<br>');show('done')};
 $('#openDir').onclick=()=>api.open_folder();$('#again').onclick=()=>reset();
-function reset(){S.items=[];S.files=[];for(const k in imgCache)delete imgCache[k];$('#thumbs').dataset.for='';renderStart();show('start')}
+function clearPreview(){S.items=[];for(const k in imgCache)delete imgCache[k];$('#thumbs').dataset.for=''}
+function back(){clearPreview();renderStart();show('start')}
+function reset(){clearPreview();S.files=[];renderStart();show('start')}
 
-function renderRoster(){const b=$('#rosterBody');b.innerHTML='';
- if(!S.agents.length)b.innerHTML='<tr><td class="hint">아직 없어요.</td></tr>';
- S.agents.forEach((a,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td style="width:34px"><button class="minus">−</button></td><td>${esc(a)}</td>`;
-  tr.querySelector('.minus').onclick=async()=>{S.agents.splice(i,1);S.agents=await api.set_agents(S.agents);renderRoster()};b.appendChild(tr)});
- $('#agentList').innerHTML=S.agents.map(a=>`<option value="${esc(a)}">`).join('')}
-async function addAgent(){const v=$('#rosterIn').value.trim();if(!v)return;S.agents=await api.set_agents([...S.agents,v]);$('#rosterIn').value='';renderRoster();$('#rosterIn').focus()}
-$('#rosterAdd').onclick=addAgent;$('#rosterIn').addEventListener('keydown',e=>{if(e.key==='Enter')addAgent()});
+// 명단 관리
+function splitNames(t){return[...new Set(t.split(/[,，\n\r;]+/).map(s=>s.trim()).filter(Boolean))]}
+function renderRoster(){const q=$('#rSearch').value.trim();const all=[...S.agents].sort((a,b)=>a.localeCompare(b,'ko'));
+ const list=q?all.filter(a=>a.includes(q)):all;
+ $('#rCount').textContent=`총 ${S.agents.length}명`;$('#rHit').textContent=q?`검색 결과 ${list.length}명`:'';
+ const c=$('#rChips');c.innerHTML='';
+ if(!list.length)c.innerHTML=`<span class="hint">${q?'검색 결과가 없습니다.':'등록된 이름이 없습니다.'}</span>`;
+ list.forEach(a=>{const s=document.createElement('span');s.className='chip2'+(q?' hit':'');s.innerHTML=`${esc(a)}<button title="삭제">×</button>`;
+  s.querySelector('button').onclick=async()=>{if(!(await modal('명단 삭제',`${a} 님을 명단에서 삭제하시겠습니까?`,[['취소',0],['삭제',1,'danger']])))return;
+   S.agents=await api.set_agents(S.agents.filter(x=>x!==a));renderRoster()};c.appendChild(s)});
+ $('#agentList').innerHTML=S.agents.map(a=>`<option value="${esc(a)}">`).join('');updAdd()}
+function updAdd(){const n=splitNames($('#rBulk').value).filter(x=>!S.agents.includes(x)).length;$('#rAdd').textContent=n?`추가 (${n}명)`:'추가';$('#rAdd').disabled=!n}
+$('#rBulk').addEventListener('input',updAdd);$('#rSearch').addEventListener('input',renderRoster);
+$('#rAdd').onclick=async()=>{const add=splitNames($('#rBulk').value).filter(x=>!S.agents.includes(x));if(!add.length)return;
+ S.agents=await api.set_agents([...S.agents,...add]);$('#rBulk').value='';renderRoster()};
 $('#rosterClose').onclick=()=>$('#rosterM').classList.remove('on');
-document.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{if(b.dataset.act==='log')api.open_log();else{renderRoster();$('#rosterM').classList.add('on');setTimeout(()=>$('#rosterIn').focus(),30)}});
+document.querySelectorAll('[data-act=roster]').forEach(b=>b.onclick=()=>{$('#rSearch').value='';renderRoster();$('#rosterM').classList.add('on');setTimeout(()=>$('#rBulk').focus(),30)});
 
 async function boot(){api=window.pywebview.api;const r=await api.init();
- S.outDir=r.out_dir;S.insurers=r.insurers;S.agents=r.agents||[];S.zoom=r.zoom||'w';
+ S.outDir=r.out_dir;S.insurers=r.insurers;S.agents=r.agents||[];S.zoom=ZL.includes(r.zoom)?r.zoom:'w';
  S.cat=['장기','자동차','일반'].includes(r.cat)?r.cat:'';S.mode=['청약서','청약서+3종','3종'].includes(r.mode)?r.mode:'';
  if(r.pv_width)document.documentElement.style.setProperty('--pvw',r.pv_width);renderStart();
  if(r.first_files&&r.first_files.length)window.onPicked(r.first_files)}
