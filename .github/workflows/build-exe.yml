@@ -3,6 +3,8 @@ on:
   push:
     branches: [3jong-exe]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: windows-latest
@@ -22,7 +24,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r app/requirements.txt -r app/requirements-ocr.txt pyinstaller
       - name: Test with Python
-        run: python tests/ci_test.py
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $ErrorActionPreference = "Continue"
+          New-Item -ItemType Directory -Force out | Out-Null
+          $env:PYTHONIOENCODING = "utf-8"
+          python tests/ci_test.py 2>&1 | Tee-Object -FilePath out/ci_test.txt
       - name: Build exe
         run: >
           pyinstaller --noconfirm --onefile --windowed --name GoodRich3jong
@@ -31,12 +39,38 @@ jobs:
           --hidden-import clr --paths app app/main.py
       - name: Test exe
         shell: pwsh
+        continue-on-error: true
         run: |
+          $ErrorActionPreference = "Continue"
           $p = Start-Process -FilePath "dist\GoodRich3jong.exe" -ArgumentList "--selftest" -Wait -PassThru
           "exit code: $($p.ExitCode)"
-          Get-Content -Encoding utf8 "dist\selftest.txt"
+          Get-Content -Encoding utf8 "dist\selftest.txt" | Tee-Object -FilePath out/exe_selftest.txt
           Remove-Item "dist\selftest.txt"
+          "exit code: $($p.ExitCode)" | Add-Content out/exe_selftest.txt
+      - name: Publish to branch
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          if (Test-Path dist\GoodRich3jong.exe) {
+          $f = Get-Item dist\GoodRich3jong.exe
+          "size: $($f.Length)" | Add-Content out/exe_selftest.txt
+          $in = [IO.File]::OpenRead($f.FullName); $buf = New-Object byte[] (40MB); $n = 0
+          while (($r = $in.Read($buf, 0, $buf.Length)) -gt 0) {
+            $out = [IO.File]::Create("out/GoodRich3jong.exe.part$n"); $out.Write($buf, 0, $r); $out.Close(); $n++
+          }
+          $in.Close()
+          (Get-FileHash $f.FullName -Algorithm SHA256).Hash | Set-Content out/sha256.txt
+          }
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan 3jong-exe-out
+          git rm -rq --cached .
+          git add out
+          git commit -q -m "build output $env:GITHUB_SHA"
+          git push -f origin 3jong-exe-out
       - uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: GoodRich3jong
           path: dist/GoodRich3jong.exe

@@ -10,7 +10,7 @@ def check(name, fn):
     except Exception:
         ok = False
         print(f"[FAIL] {name}")
-        traceback.print_exc()
+        traceback.print_exc(file=sys.stdout)
 
 for m in ["webview", "fitz", "pypdf", "numpy", "PIL",
           "winrt.windows.media.ocr", "winrt.windows.globalization",
