@@ -43,7 +43,7 @@ main{flex:1;padding:20px 24px;overflow:hidden;display:flex;flex-direction:column
 .c-ok{background:var(--ok-l);color:var(--ok)}.c-wa{background:var(--wa-l);color:var(--wa)}
 .nav{margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:700;color:var(--wa)}
 .banner{background:var(--wa-l);color:var(--wa);border-radius:8px;padding:10px 14px;font-weight:700;font-size:15px}
-.body{flex:1;display:flex;gap:16px;min-height:0}
+.body{flex:1;display:flex;gap:4px;min-height:0}
 .tbl{flex:1;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:10px;min-width:0}
 table{border-collapse:collapse;width:100%;font-size:15px}
 th{position:sticky;top:0;z-index:1;background:#f1f3f6;text-align:left;padding:10px 6px;border-bottom:2px solid var(--line);white-space:nowrap;font-size:14px;color:#3b4652}
@@ -62,11 +62,14 @@ td.no{color:var(--sub);width:34px}
 .st{font-weight:700;font-size:14px}.st.ok{color:var(--ok)}.st.wa{color:var(--wa)}
 .ack{font-size:12px;padding:2px 7px;margin-left:6px;border-radius:5px;border:1px solid #d9c27a;background:#fff;color:var(--wa);cursor:pointer;font-weight:700}
 td.fn{font-size:13px;color:var(--sub);max-width:300px;overflow:hidden;text-overflow:ellipsis}
-.prev{width:360px;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;gap:10px;flex-shrink:0}
+.split{width:10px;flex-shrink:0;cursor:col-resize;border-radius:5px;background:linear-gradient(90deg,transparent 3px,#cfd6df 3px,#cfd6df 7px,transparent 7px)}
+.split:hover,.split.drag{background:linear-gradient(90deg,transparent 2px,var(--blue) 2px,var(--blue) 8px,transparent 8px)}
+.prev{width:var(--pvw,48%);min-width:300px;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;gap:10px;flex-shrink:0}
 .prev .h{display:flex;justify-content:space-between;align-items:center;font-weight:700}
 .prev .pg{flex:1;min-height:0;background:#e9edf2;border-radius:6px;overflow:auto;display:flex}
 .prev .pg img{margin:auto;max-width:100%;max-height:100%;box-shadow:0 1px 6px rgba(0,0,0,.2);background:#fff}
 .prev .pg.zoom img{max-width:none;max-height:none}
+.prev .pg.fitw img{max-width:none;max-height:none;width:100%;margin:0 auto auto}
 .prev .ctl{display:flex;justify-content:space-between;align-items:center;gap:6px}
 .thumbs{display:flex;gap:6px;overflow-x:auto;min-height:66px}
 .thumbs img{height:62px;border:2px solid transparent;border-radius:3px;cursor:pointer;background:#fff}
@@ -89,11 +92,11 @@ footer{background:#fff;border-top:1px solid var(--line);padding:12px 24px;displa
 <header><h1>3종서류 자동 분할</h1><div class="steps"><b class="on">1 파일 넣기</b><b>2 확인</b><b>3 완료</b></div></header>
 <main>
  <div class="card">
-  <div class="q">① 서류 종류</div>
-  <div class="seg" id="kind"><button data-v="3종서류">3종서류</button><button data-v="청약서만">청약서만</button><button data-v="청약서+3종">청약서 + 3종</button></div>
-  <div class="q" style="margin-top:16px">② 상품 구분</div>
+  <div class="q">① 상품 구분</div>
   <div class="seg" id="cat"><button data-v="장기">장기</button><button data-v="자동차">자동차</button><button data-v="일반">일반</button></div>
-  <div class="hint" id="kindHint">3종서류만 넣을 때는 상품 구분을 고르지 않아도 돼요.</div>
+  <div class="q" style="margin-top:16px">② 서류 종류</div>
+  <div class="seg" id="kind"><button data-v="청약서">청약서</button><button data-v="청약서+3종">청약서 + 3종</button><button data-v="3종">3종</button></div>
+  <div class="hint" id="kindHint"></div>
  </div>
  <div class="drop" id="drop"><div style="font-size:44px;color:var(--blue)">⬇</div><div class="big">여기에 스캔 PDF를 끌어다 놓으세요</div><button class="btn" id="pick">파일 선택</button></div>
  <div class="card path"><b>저장 위치</b><div class="v" id="outDir"></div><button class="btn" id="chooseOut">변경</button></div>
@@ -123,15 +126,16 @@ footer{background:#fff;border-top:1px solid var(--line);padding:12px 24px;displa
  <div class="banner" id="banner" style="display:none"></div>
  <div class="body">
   <div class="tbl"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+  <div class="split" id="split" title="끌어서 크기 조절"></div>
   <div class="prev">
    <div class="h"><span id="pvTitle"></span><span id="pvSub" style="color:var(--sub);font-weight:400;font-size:14px"></span></div>
    <div class="pg" id="pvBox"><img id="pvImg" alt=""></div>
    <div class="thumbs" id="thumbs"></div>
-   <div class="ctl"><button class="btn sm" id="pgPrev">◀</button><span id="pgPos"></span><button class="btn sm" id="pgNext">▶</button><button class="btn sm" id="zOut">－</button><button class="btn sm" id="zIn">＋ 확대</button></div>
+   <div class="ctl"><button class="btn sm" id="pgPrev">◀</button><span id="pgPos"></span><button class="btn sm" id="pgNext">▶</button><button class="btn sm" id="zFit">폭 맞추기</button><button class="btn sm" id="zOut">－</button><button class="btn sm" id="zIn">＋ 확대</button></div>
   </div>
  </div>
 </main>
-<footer><button class="btn" id="toStart">처음으로</button><span style="color:var(--sub)">칸을 누르면 바로 고칠 수 있어요</span><button class="btn p" id="saveBtn">저장하기</button></footer>
+<footer><span style="display:flex;gap:8px"><button class="btn" id="toStart">처음으로</button><button class="btn" id="openLog">기록 폴더 열기</button></span><span style="color:var(--sub)">칸을 누르면 바로 고칠 수 있어요</span><button class="btn p" id="saveBtn">저장하기</button></footer>
 </section>
 
 <!-- ③ 완료 -->
@@ -150,7 +154,7 @@ footer{background:#fff;border-top:1px solid var(--line);padding:12px 24px;displa
 
 <script>
 const $=s=>document.querySelector(s);
-const S={mode:'3종서류',cat:'',path:'',outDir:'',insurers:[],items:[],names:[],sel:0,pg:0,zoom:0,ocr:'',ocrNote:''};
+const S={mode:'',cat:'',pending:false,path:'',outDir:'',insurers:[],items:[],names:[],sel:0,pg:0,zoom:0,ocr:'',ocrNote:''};
 let api=null;
 function show(id){document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('on',e.id===id))}
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -159,16 +163,19 @@ function modal(title,body,buttons){return new Promise(res=>{$('#mT').textContent
  $('#modal').classList.add('on')})}
 
 /* ---------- 시작 화면 */
+function exampleName(){const c=S.cat,m=S.mode;if(!c||!m)return'';
+ return m==='청약서'?`${c}_보험사_취급자_계약자.pdf`:`3종_${c}_보험사_취급자_계약자${c==='장기'?'(_구)':''}${m==='청약서+3종'?'_전체장수':''}.pdf`}
 function renderStart(){
+ document.querySelectorAll('#cat button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.cat));
  document.querySelectorAll('#kind button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.mode));
- const need=S.mode!=='3종서류';
- document.querySelectorAll('#cat button').forEach(b=>{b.disabled=!need;b.classList.toggle('on',need&&b.dataset.v===S.cat)});
  const h=$('#kindHint');h.classList.remove('err');
- h.textContent=need?(S.cat?`파일 이름 앞에 "${S.cat}"가 붙어요.`:'상품 구분을 골라주세요.'):'3종서류만 넣을 때는 상품 구분을 고르지 않아도 돼요.';
+ if(!S.cat||!S.mode){h.textContent=!S.cat?'상품 구분을 골라주세요.':'서류 종류를 골라주세요.';if(S.pending)h.classList.add('err')}
+ else h.textContent='파일 이름 예) '+exampleName();
  const o=$('#outDir');o.textContent=S.outDir||'아직 정하지 않았어요 — [변경]을 눌러 정해주세요';o.classList.toggle('empty',!S.outDir);
 }
-document.querySelectorAll('#kind button').forEach(b=>b.onclick=()=>{S.mode=b.dataset.v;renderStart()});
-document.querySelectorAll('#cat button').forEach(b=>b.onclick=()=>{S.cat=b.dataset.v;renderStart()});
+function choose(){renderStart();if(S.pending&&S.cat&&S.mode){S.pending=false;startJob()}}
+document.querySelectorAll('#kind button').forEach(b=>b.onclick=()=>{S.mode=b.dataset.v;choose()});
+document.querySelectorAll('#cat button').forEach(b=>b.onclick=()=>{S.cat=b.dataset.v;choose()});
 $('#pick').onclick=async()=>{const p=await api.choose_file();if(p)window.onPicked(p)};
 $('#chooseOut').onclick=async()=>{const d=await api.choose_folder();if(d){S.outDir=d;renderStart()}};
 const drop=$('#drop');
@@ -176,8 +183,7 @@ const drop=$('#drop');
 ['dragleave','drop'].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'||e.target===drop)drop.classList.remove('over')}));
 window.onPicked=async(path)=>{
  S.path=path;
- if(S.mode!=='3종서류'&&!S.cat){const h=$('#kindHint');h.textContent='상품 구분(장기/자동차/일반)을 먼저 골라주세요. 고르면 바로 시작해요.';h.classList.add('err');
-  document.querySelectorAll('#cat button').forEach(b=>b.onclick=()=>{S.cat=b.dataset.v;renderStart();document.querySelectorAll('#cat button').forEach(x=>x.onclick=()=>{S.cat=x.dataset.v;renderStart()});startJob()});return}
+ if(!S.cat||!S.mode){S.pending=true;renderStart();const h=$('#kindHint');h.textContent=`${!S.cat?'상품 구분':'서류 종류'}을 골라주세요. 고르면 바로 시작해요. (${path.split(/[\\/]/).pop()})`;h.classList.add('err');return}
  startJob();
 };
 async function startJob(){
@@ -201,12 +207,13 @@ function warnsOf(it){
  if(!it.ins) w.push('보험사 확인');
  if(!it.contractor) w.push('계약자 못 읽음');
  if(!it.agent) w.push('취급자 확인');
- if(S.mode!=='청약서만'&&!it.ver&&!w.some(x=>x.includes('빠짐')||x.includes('장수'))) w.push('버전 확인');
+ if(hasVer()&&!it.ver&&!w.some(x=>x.includes('빠짐')||x.includes('장수'))) w.push('버전 확인');
  return w;
 }
 function firstWarn(){const i=S.items.findIndex(it=>warnsOf(it).length);return i<0?0:i}
-function cols(){const c=[['no','No'],['ver','버전'],['ins','보험사'],['agent','취급자'],['contractor','계약자'],['insured','피보험자'],['product','상품명']];
- if(S.mode!=='3종서류')c.push(['count','장수']);c.push(['st','상태'],['fn','저장될 파일 이름']);return c}
+function hasVer(){return S.cat==='장기'&&S.mode!=='청약서'}
+function cols(){const c=[['no','No']];if(hasVer())c.push(['ver','버전']);c.push(['ins','보험사'],['agent','취급자'],['contractor','계약자'],['insured','피보험자'],['product','상품명']);
+ if(S.mode==='청약서+3종')c.push(['count','장수']);c.push(['st','상태'],['fn','저장될 파일 이름']);return c}
 function renderReview(){
  $('#thead').innerHTML=cols().map(([k,l])=>`<th>${l}</th>`).join('');
  const tb=$('#tbody');tb.innerHTML='';
@@ -272,7 +279,7 @@ let pvToken=0;
 async function renderPreview(){
  const it=S.items[S.sel];if(!it)return;const tok=++pvToken;
  $('#pvTitle').textContent=`No.${it.no} 원본`;
- $('#pvSub').textContent=`${it.ver?(it.ver==='구'?'구버전':'신버전')+' · ':''}${it.pages.length}장`;
+ $('#pvSub').textContent=`${hasVer()&&it.ver?(it.ver==='구'?'구버전':'신버전')+' · ':''}${it.pages.length}장`;
  if(S.pg>=it.pages.length)S.pg=0;
  $('#pgPos').textContent=`${S.pg+1} / ${it.pages.length}쪽`;
  const th=$('#thumbs');
@@ -280,15 +287,22 @@ async function renderPreview(){
   it.pages.forEach((p,k)=>{const im=document.createElement('img');im.onclick=()=>{S.pg=k;renderPreview()};th.appendChild(im);
    pageImg(p,140).then(src=>{if(th.dataset.for===String(S.sel))im.src=src})})}
  [...th.children].forEach((im,k)=>im.classList.toggle('on',k===S.pg));
- const box=$('#pvBox');box.classList.toggle('zoom',S.zoom>0);
- const w=S.zoom>0?1400:640;
+ const box=$('#pvBox');box.classList.toggle('zoom',S.zoom>0);box.classList.toggle('fitw',S.zoom==='w');
+ const w=S.zoom===0?1000:1600;
  const src=await pageImg(it.pages[S.pg],w);if(tok!==pvToken)return;
- const img=$('#pvImg');img.src=src;img.style.width=S.zoom>0?(S.zoom===1?'160%':'240%'):'';
+ const img=$('#pvImg');img.src=src;img.style.width=(S.zoom===1?'160%':S.zoom===2?'240%':'');
+ $('#zFit').classList.toggle('p',S.zoom==='w');
 }
 $('#pgPrev').onclick=()=>{const it=S.items[S.sel];S.pg=(S.pg-1+it.pages.length)%it.pages.length;renderPreview()};
 $('#pgNext').onclick=()=>{const it=S.items[S.sel];S.pg=(S.pg+1)%it.pages.length;renderPreview()};
-$('#zIn').onclick=()=>{S.zoom=Math.min(2,S.zoom+1);renderPreview()};
-$('#zOut').onclick=()=>{S.zoom=Math.max(0,S.zoom-1);renderPreview()};
+$('#zIn').onclick=()=>{S.zoom=S.zoom==='w'?1:Math.min(2,S.zoom+1);renderPreview()};
+$('#zOut').onclick=()=>{S.zoom=S.zoom==='w'?0:Math.max(0,S.zoom-1);renderPreview()};
+$('#zFit').onclick=()=>{S.zoom=S.zoom==='w'?0:'w';renderPreview()};
+$('#openLog').onclick=()=>api.open_log();
+(function(){const sp=$('#split'),body=sp.parentElement;let drag=false;
+ sp.addEventListener('mousedown',e=>{drag=true;sp.classList.add('drag');e.preventDefault()});
+ window.addEventListener('mousemove',e=>{if(!drag)return;const r=body.getBoundingClientRect();let pct=(r.right-e.clientX)/r.width*100;pct=Math.max(25,Math.min(75,pct));document.documentElement.style.setProperty('--pvw',pct.toFixed(1)+'%')});
+ window.addEventListener('mouseup',()=>{if(!drag)return;drag=false;sp.classList.remove('drag');api.set_pref('pv_width',getComputedStyle(document.documentElement).getPropertyValue('--pvw').trim())})})();
 function jumpWarn(dir){const n=S.items.length;for(let k=1;k<=n;k++){const i=(S.sel+dir*k+n)%n;if(warnsOf(S.items[i]).length){select(i,true);
  const tr=document.querySelector(`#tbody tr[data-idx="${i}"]`);const m=tr&&tr.querySelector('.miss');if(m)m.focus();return}}}
 $('#prevW').onclick=()=>jumpWarn(-1);$('#nextW').onclick=()=>jumpWarn(1);
@@ -309,11 +323,12 @@ $('#saveBtn').onclick=async()=>{
 };
 $('#openDir').onclick=()=>api.open_folder();
 $('#again').onclick=()=>reset();
-function reset(){S.items=[];S.path='';for(const k in imgCache)delete imgCache[k];$('#thumbs').dataset.for='';renderStart();show('start')}
+function reset(){S.items=[];S.path='';S.pending=false;for(const k in imgCache)delete imgCache[k];$('#thumbs').dataset.for='';renderStart();show('start')}
 
 /* ---------- 시작 */
 async function boot(){api=window.pywebview.api;const r=await api.init();
- S.outDir=r.out_dir;S.insurers=r.insurers;S.mode=r.mode||'3종서류';S.cat=r.cat||'';renderStart();
+ S.outDir=r.out_dir;S.insurers=r.insurers;S.mode=['청약서','청약서+3종','3종'].includes(r.mode)?r.mode:'';S.cat=r.cat||'';
+ if(r.pv_width)document.documentElement.style.setProperty('--pvw',r.pv_width);renderStart();
  if(r.first_file)window.onPicked(r.first_file)}
 if(window.pywebview&&window.pywebview.api&&window.pywebview.api.init)boot();else window.addEventListener('pywebviewready',boot);
 </script>

@@ -21,6 +21,7 @@ log = logging.getLogger("main")
 import core  # noqa: E402
 import ocr  # noqa: E402
 import pdfio  # noqa: E402
+import logos  # noqa: E402
 
 SETTINGS = os.path.join(APPDIR, "settings.json")
 
@@ -59,7 +60,26 @@ class Api:
     def init(self):
         canon, _ = core.load_insurers()
         return {"out_dir": self._s.get("out_dir") or "", "first_file": self._path or "",
-                "insurers": canon, "mode": self._s.get("mode") or core.MODE_3, "cat": self._s.get("cat") or ""}
+                "insurers": canon, "mode": self._s.get("mode") or "", "cat": self._s.get("cat") or "",
+                "pv_width": self._s.get("pv_width") or ""}
+
+    def set_pref(self, key, value):
+        if key in ("pv_width",):
+            self._s[key] = value
+            save_settings(self._s)
+        return True
+
+    def open_log(self):
+        try:
+            os.startfile(APPDIR)  # noqa (윈도우 전용)
+        except Exception:
+            log.exception("기록 폴더 열기 실패")
+
+    def _logos(self):
+        if getattr(self, "_lm", None) is None:
+            _, alias = core.load_insurers()
+            self._lm = logos.LogoMatcher([os.path.join(HERE, "logos"), os.path.join(EXE_DIR, "로고")], alias)
+        return self._lm
 
     def choose_file(self):
         import webview
@@ -108,7 +128,10 @@ class Api:
             return {"ok": False, "msg": "PDF 파일을 찾을 수 없어요."}
         if not path.lower().endswith(".pdf"):
             return {"ok": False, "msg": "PDF 파일만 넣을 수 있어요."}
+        if mode not in (core.MODE_3, core.MODE_APP, core.MODE_MIX) or not cat:
+            return {"ok": False, "msg": "상품 구분과 서류 종류를 골라주세요."}
         self._path, self._mode, self._cat = path, mode, cat
+        log.info("시작: 상품구분=%s 서류종류=%s 파일=%s", cat, mode, core.mask(os.path.basename(path)))
         self._s.update({"mode": mode, "cat": cat})
         save_settings(self._s)
         self._job = {"running": True, "done": 0, "total": 1, "msg": "준비 중", "finished": False, "error": ""}
@@ -127,7 +150,8 @@ class Api:
                 self._job.update({"done": d, "total": max(1, n), "msg": m})
 
             an = core.Analyzer(self._doc, self._mode, self._cat, eng,
-                               last_agent=self._s.get("last_agent", ""), progress=prog)
+                               last_agent=self._s.get("last_agent", ""), progress=prog,
+                               logos=self._logos() if self._mode == core.MODE_APP else None)
             _, items = an.run()
             self._items = items
             log.info("처리 완료: %s, %d건, 엔진=%s", self._path, len(items), eng and eng.name)
@@ -241,7 +265,8 @@ def main():
     api = Api(first)
     global _window
     _window = webview.create_window("3종서류 자동 분할", url=os.path.join(HERE, "ui", "index.html"),
-                                    js_api=api, width=1320, height=860, min_size=(1100, 700))
+                                    js_api=api, width=1320, height=860, min_size=(1100, 700),
+                                    maximized=True)
 
     def on_loaded(*_):
         try:  # 끌어다 놓기 (pywebview 5 이상)
