@@ -64,7 +64,10 @@ td{padding:3px 6px;border-bottom:1px solid var(--line2);white-space:nowrap}
 .zb{width:30px;height:28px;font-size:17px;font-weight:700;padding:0}
 .zl{min-width:78px;text-align:center;font-weight:700}
 .thumbs{display:flex;gap:5px;padding:6px 10px;border-top:1px solid var(--line);overflow-x:auto;min-height:60px}
-.thumbs img{height:46px;border:1px solid var(--line);cursor:pointer;background:#fff}.thumbs img.on{outline:2px solid var(--pri)}
+.thumbs img{height:46px;border:1px solid var(--line);cursor:pointer;background:#fff}.thumbs img.on{outline:2px solid var(--pri)}.thumbs img.off{opacity:.3}
+.offmark{margin-left:auto;background:#b42318;color:#fff;font-weight:700;font-size:12px;padding:3px 10px;border-radius:3px}
+.vp img.off{opacity:.35}
+.btn.warnb{border-color:#e3a5a0;color:#b42318}
 tr.w td{background:var(--warn-l)}
 tr.sel td{background:var(--pri-l)!important}
 tr.out td{color:var(--off)}tr.out td input,tr.out td select{color:var(--off);text-decoration:line-through}
@@ -104,9 +107,10 @@ textarea.inp{width:100%;height:70px;resize:vertical}
  <div class="main">
   <div class="panel"><div class="pb path"><div class="lab">저장 경로</div><div class="v" id="outDir"></div><button class="btn" id="chooseOut">변경</button><button class="btn" id="openOut">폴더 열기</button></div></div>
   <div class="panel"><div class="ph">작업 설정</div><div class="setw"><div class="l">
-   <div class="row"><div class="lab">상품 구분</div><div class="seg" id="cat"><button data-v="장기">장기</button><button data-v="자동차">자동차</button><button data-v="일반">일반</button></div></div>
-   <div class="row"><div class="lab">서류 종류</div><div class="seg" id="kind"><button data-v="청약서">청약서</button><button data-v="청약서+3종">청약서+3종</button><button data-v="3종">3종</button></div><span class="hint" id="kindHint"></span></div>
-   <div class="row"><div class="lab"></div><span class="hint" id="verHint">장기 3종서류는 페이지 수로 신/구버전을 자동 판별합니다. 구버전은 파일명 끝에 _구가 붙습니다.</span></div>
+   <div style="font-weight:700;font-size:13.5px;margin-bottom:6px">서류 종류와 상품 구분은 건마다 자동으로 판별합니다.</div>
+   <div class="hint" style="line-height:1.8">· 서류 종류: 3종 / 청약서+3종 / 청약서 &nbsp;· 상품 구분: 장기 / 자동차 / 일반<br>
+   · 장기 3종서류는 페이지 수로 신/구버전을 판별하며, 구버전은 파일명 끝에 _구가 붙습니다.<br>
+   · 청약서만 있는 파일은 파일 하나를 1건으로 처리합니다.</div>
   </div><div class="r"><button class="btn p big" id="startBtn">파일 분할</button><span class="hint" id="startInfo"></span></div></div></div>
   <div class="panel" style="flex:1;min-height:200px;display:flex;flex-direction:column">
    <div class="ph">대상 파일 <span class="n" id="fileChip">0개</span><span style="margin-left:auto"></span><button class="btn s" id="addFile">파일 추가</button><button class="btn s" id="clearFiles">전체 삭제</button></div>
@@ -133,11 +137,12 @@ textarea.inp{width:100%;height:70px;resize:vertical}
   <div class="banner" id="banner" style="display:none"></div>
   <div class="panel split"><div class="tblw"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
    <div class="gut" id="gut" title="끌어서 크기 조절"></div>
-   <div class="pv"><div class="ph"><span id="pvTitle"></span><span class="hint" id="pvSub" style="font-weight:400"></span></div>
+   <div class="pv"><div class="ph"><span id="pvTitle"></span><span class="hint" id="pvSub" style="font-weight:400"></span><span class="offmark" id="offMark" style="display:none">이 페이지는 제외됨</span></div>
     <div class="vp" id="vp"><img id="pvImg" alt=""></div>
     <div class="thumbs" id="thumbs"></div>
     <div class="pvc"><button class="btn s" id="pgPrev">◀</button><span id="pgPos" style="min-width:60px;text-align:center"></span><button class="btn s" id="pgNext">▶</button>
      <span style="width:8px"></span><button class="btn s" id="goTop">맨 위</button><button class="btn s" id="goBot">맨 아래</button>
+     <span style="width:8px"></span><button class="btn s warnb" id="pgOff">이 페이지 제외</button>
      <span style="margin-left:auto"></span><button class="btn zb" id="zOut" title="축소">−</button><span class="zl" id="zLabel"></span><button class="btn zb" id="zIn" title="확대">+</button></div>
    </div></div>
  </div>
@@ -168,7 +173,7 @@ textarea.inp{width:100%;height:70px;resize:vertical}
 
 <script>
 const $=s=>document.querySelector(s);
-const S={cat:'',mode:'',files:[],outDir:'',insurers:[],agents:[],items:[],names:[],srcFiles:[],sel:0,pg:0,zoom:'w',ocr:'',ocrNote:'',pvTarget:'top'};
+const S={cat:'',mode:'자동',files:[],outDir:'',insurers:[],agents:[],items:[],names:[],srcFiles:[],sel:0,pg:0,zoom:'w',ocr:'',ocrNote:'',pvTarget:'top'};
 let api=null;
 function show(id){document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('on',e.id===id));hideTip()}
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -178,15 +183,10 @@ function modal(title,body,buttons,html){return new Promise(res=>{$('#mT').textCo
  buttons.forEach(([label,val,cls])=>{const b=document.createElement('button');b.className='btn'+(cls?' '+(cls===true?'p':cls):'');b.textContent=label;b.onclick=()=>{$('#modal').classList.remove('on');res(val)};f.appendChild(b)});
  $('#modal').classList.add('on');setTimeout(()=>{const p=f.querySelector('.p,.danger');p&&p.focus()},30)})}
 async function errorModal(title,msg){const r=await modal(title,msg+'\n\n문제가 계속되면 기록 폴더의 log.txt 파일을 전달하십시오.',[['기록 폴더 열기','log'],['확인',1,true]]);if(r==='log')api.open_log()}
-const hasVer=()=>S.cat==='장기'&&S.mode!=='청약서';
-function prefix(){return S.mode==='3종'?'3종':S.mode==='청약서'?S.cat:S.cat+'3종'}
-
-function exampleName(){if(!S.cat||!S.mode)return'';return`${prefix()}_보험사_취급자_계약자${S.mode==='청약서+3종'?'_장수':''}.pdf`}
+const KINDS=['3종','장기3종','자동차3종','일반3종','장기','자동차','일반'];
+function prefixOf(it){if(it.kind)return it.kind;const m=it.mode||'3종',c=it.cat||'장기';return m==='3종'?'3종':m==='청약서'?c:c+'3종'}
+function verNeeded(it){const p=prefixOf(it);return p==='장기3종'||(p==='3종'&&(it.cat||'장기')==='장기')}
 function renderStart(){
- document.querySelectorAll('#cat button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.cat));
- document.querySelectorAll('#kind button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.mode));
- $('#kindHint').innerHTML=S.cat&&S.mode?`파일 이름 예) <span class="mono">${esc(exampleName())}</span>`:'';
- $('#verHint').style.visibility=hasVer()?'visible':'hidden';
  const fb=$('#fileBody');fb.innerHTML='';let total=0;
  S.files.forEach((f,i)=>{total+=f.pages||0;const tr=document.createElement('tr');
   tr.innerHTML=`<td><button class="minus" title="목록에서 삭제">−</button></td><td>${i+1}</td><td>${esc(base(f.path))}</td><td>${f.pages?f.pages+'장':'…'}</td><td class="hint">${esc(dir(f.path))}</td>`;
@@ -198,11 +198,9 @@ function renderStart(){
  $('#fileChip').textContent=`${S.files.length}개`;
  const o=$('#outDir');o.textContent=S.outDir||'저장 경로가 지정되지 않았습니다. [변경]을 눌러 지정하십시오.';o.classList.toggle('empty',!S.outDir);
  $('#startInfo').textContent=`파일 ${S.files.length}개 · 총 ${total}장`;
- const miss=!S.cat?'상품 구분을 선택하십시오.':!S.mode?'서류 종류를 선택하십시오.':!S.files.length?'대상 파일을 추가하십시오.':!S.outDir?'저장 경로를 지정하십시오.':'';
+ const miss=!S.files.length?'대상 파일을 추가하십시오.':!S.outDir?'저장 경로를 지정하십시오.':'';
  $('#startHint').textContent=miss;$('#startBtn').disabled=!!miss;
 }
-document.querySelectorAll('#cat button').forEach(b=>b.onclick=()=>{S.cat=b.dataset.v;renderStart()});
-document.querySelectorAll('#kind button').forEach(b=>b.onclick=()=>{S.mode=b.dataset.v;renderStart()});
 window.onPicked=async(paths)=>{if(!Array.isArray(paths))paths=[paths];
  const bad=paths.filter(p=>!/\.pdf$/i.test(p));if(bad.length)await modal('파일 추가','PDF 파일만 추가할 수 있습니다.\n\n'+bad.map(base).join('\n'),[['확인',1,true]]);
  for(const p of paths.filter(p=>/\.pdf$/i.test(p))){if(S.files.some(f=>f.path===p))continue;const f={path:p,pages:0};S.files.push(f);
@@ -219,12 +217,12 @@ document.addEventListener('dragleave',e=>{if(!e.relatedTarget)drop.classList.rem
 document.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over')});
 $('#startBtn').onclick=async()=>{
  const total=S.files.reduce((a,f)=>a+(f.pages||0),0);
- const ok=await modal('파일 분할',`아래 설정으로 파일을 분할하시겠습니까?<div class="kv"><span>상품 구분</span><b>${esc(S.cat)}</b><span>서류 종류</span><b>${esc(S.mode)}</b><span>대상 파일</span><b>${S.files.length}개 · 총 ${total}장</b><span>저장 경로</span><b>${esc(S.outDir)}</b></div>`,[['취소',0],['파일 분할',1,true]],true);
+ const ok=await modal('파일 분할',`아래 파일을 분할하시겠습니까?<div class="kv"><span>대상 파일</span><b>${S.files.length}개 · 총 ${total}장</b><span>저장 경로</span><b>${esc(S.outDir)}</b></div>`,[['취소',0],['파일 분할',1,true]],true);
  if(!ok)return;
- const r=await api.start(S.files.map(f=>f.path),S.mode,S.cat);
+ const r=await api.start(S.files.map(f=>f.path),'자동','');
  if(!r.ok){await modal('파일 분할',r.msg,[['확인',1,true]]);return}
  $('#workCtx').textContent=ctxText();$('#pbar').style.width='0';$('#workMsg').textContent='';show('work');poll()};
-function ctxText(){return `${S.cat} · ${S.mode} · 파일 ${S.files.length}개`}
+function ctxText(){return `자동 판별 · 파일 ${S.files.length}개`}
 async function poll(){
  const j=await api.progress();$('#pbar').style.width=Math.round(100*j.done/j.total)+'%';$('#workMsg').textContent=j.msg||'';
  if(!j.finished){setTimeout(poll,350);return}
@@ -234,12 +232,14 @@ async function poll(){
  S.sel=firstWarn();S.pg=defaultPage(S.items[S.sel]);S.pvTarget='top';renderReview();show('review')}
 
 const TIPS={
+ '구분 확인':'서류 종류나 상품 구분(장기·자동차·일반)을 확실히 판별하지 못했습니다. [구분] 칸을 확인하고 다르면 변경하십시오.',
  '구버전 적용':'비교설명서가 1장이라 구버전으로 판별했습니다. 파일명 끝에 _구가 붙습니다. 맞으면 [확인]을 누르십시오. 다르면 버전 칸에서 변경하십시오.',
  '버전 판별 불가':'페이지 수로 신/구버전을 판별할 수 없습니다. 원본을 보고 버전 칸에서 선택하십시오.',
  '상품구분 불일치(확인필요)':'선택한 상품 구분과 이 건의 비교설명서 양식이 다릅니다. 맞으면 [확인]을 누르고, 아니면 [−]로 제외한 뒤 해당 상품 구분으로 따로 작업하십시오.',
  '동일상품 확인':'같은 계약자·피보험자·보험사 건이 2건 이상입니다. 상품명을 입력하면 파일명에 추가되고, 입력하지 않으면 (2)가 붙습니다.',
  '2건 병합 의심':'한 건에 개인정보동의서가 여러 장이거나 페이지가 너무 많습니다. 2건이 하나로 묶였을 수 있으니 원본을 확인하십시오.',
- '빈 페이지 포함':'내용이 거의 없는 페이지가 포함되어 있습니다. 원본을 확인하십시오.',
+ '빈 페이지 포함':'내용이 거의 없는 페이지가 포함되어 있습니다. 미리보기에서 확인하고, 빼야 하면 [이 페이지 제외]를 누르십시오.',
+ '모든 페이지 제외':'이 건의 페이지가 모두 제외되어 저장되지 않습니다.',
  '개인정보동의서 누락':'개인(신용)정보처리동의서를 찾지 못했습니다.',
  '고지의무확인서 누락':'고지의무확인서를 찾지 못했습니다. 다음 건과 묶였을 수 있습니다.',
  '비교설명서 누락':'비교·설명 확인서를 찾지 못했습니다.',
@@ -253,15 +253,18 @@ const TIPS={
 function dupKey(it){return [it.contractor,it.insured,it.ins,(it.product||'').trim()].join('|')}
 function dupSet(){const c={};S.items.forEach(it=>{if(it.skip||!it.contractor||!it.ins)return;const k=dupKey(it);c[k]=(c[k]||0)+1});return c}
 let DUP={};
+function activePages(it){return it.pages.filter(p=>!p.off)}
 function warnsOf(it){if(it.skip||it.ack)return[];const w=[...(it.warns||[])];
+ if(!activePages(it).length)w.unshift('모든 페이지 제외');
+ const bi=w.indexOf('빈 페이지 포함');if(bi>=0&&!it.pages.some(p=>p.kind==='blank'&&!p.off))w.splice(bi,1);
  if(!it.ins)w.push('보험사명 미인식');if(!it.contractor)w.push('계약자명 미인식');if(!it.agent)w.push('취급자명 미인식');
- if(hasVer()&&!it.ver&&!w.includes('버전 판별 불가'))w.push('버전 판별 불가');
+ if(verNeeded(it)&&!it.ver&&!w.includes('버전 판별 불가'))w.push('버전 판별 불가');
+ if(!verNeeded(it)){const k=w.indexOf('버전 판별 불가');if(k>=0)w.splice(k,1);const g=w.indexOf('구버전 적용');if(g>=0&&!verNeeded(it))w.splice(g,1)}
  if(it.ver&&w.includes('버전 판별 불가')&&it.verSet)w.splice(w.indexOf('버전 판별 불가'),1);
  if(it.contractor&&it.ins&&(DUP[dupKey(it)]||0)>1)w.push('동일상품 확인');return w}
 function firstWarn(){DUP=dupSet();const i=S.items.findIndex(it=>warnsOf(it).length);return i<0?0:i}
-function cols(){const c=[['skip',''],['no','No'],['ins','보험사'],['agent','취급자'],['contractor','계약자'],['insured','피보험자'],['product','상품명']];
- if(hasVer())c.push(['ver','버전']);
- if(S.mode==='청약서+3종')c.push(['count','장수']);c.push(['st','상태'],['fn','저장될 파일 이름']);return c}
+function cols(){const c=[['skip',''],['no','No'],['kind','구분'],['ins','보험사'],['agent','취급자'],['contractor','계약자'],['insured','피보험자'],['product','상품명']];
+ c.push(['ver','버전'],['count','장수']);c.push(['st','상태'],['fn','저장될 파일 이름']);return c}
 const TOPF=new Set(['ins','contractor','insured','product']);
 function renderReview(){
  DUP=dupSet();
@@ -279,12 +282,14 @@ function renderReview(){
    if(k==='contractor')return`<td style="min-width:96px"><input data-k="contractor"></td>`;
    if(k==='insured')return`<td style="min-width:90px"><input data-k="insured" placeholder="같음"></td>`;
    if(k==='product')return`<td style="width:110px"><input data-k="product" placeholder="—" title="입력하면 파일명에 추가됩니다"></td>`;
+   if(k==='kind')return`<td style="width:96px"><select data-k="kind" style="min-width:86px">${KINDS.map(x=>`<option>${x}</option>`).join('')}</select></td>`;
    if(k==='ver')return`<td style="width:58px"><select class="ver" data-k="ver"><option value="">?</option><option value="신">신</option><option value="구">구</option></select></td>`;
-   if(k==='count')return`<td>${it.count}장</td>`;
+   if(k==='count')return`<td class="cnt">${it.count}장</td>`;
    if(k==='st')return`<td class="st"></td>`;
    return`<td class="fn"></td>`}).join('');
-  tr.querySelectorAll('[data-k]').forEach(el=>{el.value=it[el.dataset.k]||'';
-   const on=()=>{const k=el.dataset.k;it[k]=el.value.trim();if(k==='ver'){it.verSet=true;it.warns=(it.warns||[]).filter(w=>w!=='버전 판별 불가'&&w!=='구버전 적용')}
+  tr.querySelectorAll('[data-k]').forEach(el=>{el.value=el.dataset.k==='kind'?prefixOf(it):(it[el.dataset.k]||'');
+   const on=()=>{const k=el.dataset.k;it[k]=el.value.trim();if(k==='kind'){it.warns=(it.warns||[]).filter(w=>w!=='구분 확인');if(el.value.startsWith('장기')||el.value==='3종')it.cat=it.cat||'장기';if(el.value!=='3종')it.cat=el.value.replace('3종','')}
+    if(k==='ver'){it.verSet=true;it.warns=(it.warns||[]).filter(w=>w!=='버전 판별 불가'&&w!=='구버전 적용')}
     it.ack=false;refreshAll()};
    el.addEventListener('input',on);el.addEventListener('change',on);
    el.addEventListener('focus',()=>{S.pvTarget=el.dataset.k==='agent'?'bottom':TOPF.has(el.dataset.k)?'top':S.pvTarget;select(idx,false,true)})});
@@ -301,7 +306,8 @@ function refreshRow(tr,it){const idx=+tr.dataset.idx,w=warnsOf(it);
  st.innerHTML=it.skip?'제외됨':w.length?`${esc(w[0])}${w.length>1?` 외 ${w.length-1}`:''}<button class="ack">확인</button>`:(it.ack?'확인 완료':'정상');
  st.dataset.tips=JSON.stringify(it.skip?['제외됨']:w);
  const fn=tr.querySelector('.fn');fn.textContent=S.names[idx]||'';fn.title=S.names[idx]||'';
- tr.querySelectorAll('[data-k=ins],[data-k=contractor],[data-k=agent]').forEach(el=>el.classList.toggle('miss',!it.skip&&!it[el.dataset.k]))}
+ tr.querySelectorAll('[data-k=ins],[data-k=contractor],[data-k=agent]').forEach(el=>el.classList.toggle('miss',!it.skip&&!it[el.dataset.k]));
+ const vs=tr.querySelector('[data-k=ver]');if(vs){const need=verNeeded(it);vs.disabled=!need;vs.style.visibility=need?'visible':'hidden'}}
 const tip=$('#tip');
 function hideTip(){tip.style.display='none'}
 document.addEventListener('mouseover',e=>{const st=e.target.closest&&e.target.closest('td.st');
@@ -337,17 +343,21 @@ async function renderPreview(){const it=S.items[S.sel];if(!it)return;const tok=+
  if(th.dataset.for!==String(S.sel)){th.dataset.for=S.sel;th.innerHTML='';
   it.pages.forEach((p,k)=>{const im=document.createElement('img');im.onclick=()=>{S.pg=k;renderPreview()};th.appendChild(im);
    pageImg(it.src||0,p,140).then(src=>{if(th.dataset.for===String(S.sel))im.src=src})})}
- [...th.children].forEach((im,k)=>im.classList.toggle('on',k===S.pg));
+ [...th.children].forEach((im,k)=>{im.classList.toggle('on',k===S.pg);im.classList.toggle('off',!!it.pages[k].off);im.title=it.pages[k].off?'제외된 페이지':''});
+ const off=!!it.pages[S.pg].off;$('#pgOff').textContent=off?'이 페이지 다시 포함':'이 페이지 제외';$('#offMark').style.display=off?'':'none';
  const vp=$('#vp'),img=$('#pvImg');vp.classList.toggle('fitp',S.zoom==='p');
  const big=S.zoom==='150'||S.zoom==='200';
  const src=await pageImg(it.src||0,it.pages[S.pg],big?1800:1100);if(tok!==pvToken)return;
  img.onload=()=>{if(tok!==pvToken)return;vp.scrollTop=S.pvTarget==='bottom'?vp.scrollHeight:0;vp.scrollLeft=0};
- const wv=vp.clientWidth-20;img.style.width=S.zoom==='p'?'':(S.zoom==='w'?wv:Math.round(wv*(+S.zoom)/100))+'px';
+ const wv=vp.clientWidth-20;img.style.width=S.zoom==='p'?'':(S.zoom==='w'?wv:Math.round(wv*(+S.zoom)/100))+'px';img.classList.toggle('off',!!it.pages[S.pg].off);
  if(img.src===src&&img.complete)img.onload();else img.src=src;
  $('#goTop').classList.toggle('on',S.pvTarget==='top');$('#goBot').classList.toggle('on',S.pvTarget==='bottom')}
 $('#pgPrev').onclick=()=>{const it=S.items[S.sel];S.pg=(S.pg-1+it.pages.length)%it.pages.length;renderPreview()};
 $('#pgNext').onclick=()=>{const it=S.items[S.sel];S.pg=(S.pg+1)%it.pages.length;renderPreview()};
 $('#goTop').onclick=()=>{S.pvTarget='top';$('#vp').scrollTop=0;renderPreview()};
+$('#pgOff').onclick=()=>{const it=S.items[S.sel];const p=it.pages[S.pg];p.off=!p.off;it.count=activePages(it).length;
+ const tr=document.querySelector(`#tbody tr[data-idx="${S.sel}"]`);if(tr){const c=tr.querySelector('td.cnt');if(c)c.textContent=it.count+'장'}
+ refreshAll();renderPreview()};
 $('#goBot').onclick=()=>{S.pvTarget='bottom';const v=$('#vp');v.scrollTop=v.scrollHeight;renderPreview()};
 function setZoom(z){S.zoom=z;api.set_pref('zoom',z);renderPreview()}
 $('#zIn').onclick=()=>setZoom(ZL[Math.min(ZL.length-1,ZL.indexOf(S.zoom)+1)]);
@@ -398,7 +408,6 @@ document.querySelectorAll('[data-act=roster]').forEach(b=>b.onclick=()=>{$('#rSe
 
 async function boot(){api=window.pywebview.api;const r=await api.init();
  S.outDir=r.out_dir;S.insurers=r.insurers;S.agents=r.agents||[];S.zoom=ZL.includes(r.zoom)?r.zoom:'w';
- S.cat=['장기','자동차','일반'].includes(r.cat)?r.cat:'';S.mode=['청약서','청약서+3종','3종'].includes(r.mode)?r.mode:'';
  if(r.pv_width)document.documentElement.style.setProperty('--pvw',r.pv_width);renderStart();
  if(r.first_files&&r.first_files.length)window.onPicked(r.first_files)}
 if(window.pywebview&&window.pywebview.api&&window.pywebview.api.init)boot();else window.addEventListener('pywebviewready',boot);

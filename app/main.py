@@ -151,7 +151,9 @@ class Api:
         miss = [os.path.basename(p) for p in paths if not os.path.exists(p)]
         if miss:
             return {"ok": False, "msg": "파일을 찾을 수 없습니다: " + ", ".join(miss)}
-        if mode not in (core.MODE_3, core.MODE_APP, core.MODE_MIX) or not cat:
+        if mode == core.MODE_AUTO:
+            cat = ""
+        elif mode not in (core.MODE_3, core.MODE_APP, core.MODE_MIX) or not cat:
             return {"ok": False, "msg": "상품 구분과 서류 종류를 선택하십시오."}
         self._paths, self._mode, self._cat = paths, mode, cat
         log.info("시작: 상품구분=%s 서류종류=%s 파일 %d개", cat, mode, len(paths))
@@ -170,7 +172,7 @@ class Api:
             self._docs = []
             items = []
             nf = len(self._paths)
-            lm = self._logos() if self._mode == core.MODE_APP else None
+            lm = self._logos() if self._mode in (core.MODE_APP, core.MODE_AUTO) else None
             for k, path in enumerate(self._paths):
                 doc = pdfio.Doc(path)
                 self._docs.append(doc)
@@ -233,13 +235,13 @@ class Api:
         if not out:
             return {"ok": False, "msg": "저장 경로를 먼저 지정하십시오."}
         os.makedirs(out, exist_ok=True)
-        items = [it for it in items if not it.get("skip")]
+        items = [it for it in items if not it.get("skip") and any(not pg.get("off") for pg in it["pages"])]
         names = core.make_names(items, self._mode, self._cat)
         saved, errors = [], []
         for it, nm in zip(items, names):
             try:
                 p = core.unique_path(out, nm)
-                pdfio.save_pages(self._paths[it.get("src", 0)], [(pg["i"], 0) for pg in it["pages"]], p)
+                pdfio.save_pages(self._paths[it.get("src", 0)], [(pg["i"], 0) for pg in it["pages"] if not pg.get("off")], p)
                 saved.append(os.path.basename(p))
             except PermissionError:
                 errors.append(f"{nm}: 같은 이름의 파일이 다른 프로그램에서 열려 있습니다")

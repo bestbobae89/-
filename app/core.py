@@ -16,7 +16,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MODE_3 = "3종"
 MODE_APP = "청약서"
 MODE_MIX = "청약서+3종"
+MODE_AUTO = "자동"
 CAT_LONG = "장기"
+CAT_CAR = "자동차"
+CAT_GEN = "일반"
 
 KW = ["보험", "계약", "확인", "설명", "상품", "동의", "서명", "보장", "해지", "가입", "청약",
       "피보험자", "보험료", "고객", "내용", "금융", "소비자", "기간", "납입", "정보", "비교"]
@@ -162,7 +165,7 @@ def classify(img75):
             return "G", 0, dens
         if wo.min() < .15:
             return "G", 180, dens
-    if dens < 0.006:
+    if dens < 0.0025:
         return "blank", 0, dens
     return "X", 0, dens
 
@@ -172,6 +175,15 @@ def is_gray(img75):
     a = np.asarray(img75.convert("RGB").resize((200, 280))).astype(int)
     sat = a.max(2) - a.min(2)
     return float((sat > 50).mean()) < 0.002
+
+
+def is_g_title(t):
+    """고지의무확인서 제목인지 (다른 서류의 '금융소비자' 문구에 속지 않도록 '고지'가 꼭 있어야 함)."""
+    return "고지의무" in t or ("고지" in t and "확인서" in t)
+
+
+def is_c_title(t):
+    return "신용" in t or ("개인" in t and ("동의" in t or "정보" in t))
 
 
 def kw_score(engine, img):
@@ -496,9 +508,9 @@ class Analyzer:
         try:
             for r in (0, 180):
                 t = self._title_text(i, r)
-                if "고지의무" in t or ("계약체결" in t and "확인서" in t):
+                if is_g_title(t):
                     return "G", r
-                if ("신용" in t and "동의" in t) or "개인정보" in t or "(신용)정보" in t:
+                if is_c_title(t):
                     return "C", r
                 if len(re.findall(r"[가-힣]", t)) >= 6:
                     break
@@ -520,7 +532,11 @@ class Analyzer:
             if not rotate_check:
                 return None
             s0 = sum(t0.count(k) for k in KW)
-            s1 = max(kw_score(self.eng, g.rotate(-90, expand=True)), kw_score(self.eng, g.rotate(90, expand=True)))
+            if s0 >= 10:  # 바로 세운 상태로 잘 읽히면 가로 양식(장기)이 아님
+                return None
+            s1 = kw_score(self.eng, g.rotate(-90, expand=True))
+            if s1 <= s0 + 2:
+                s1 = max(s1, kw_score(self.eng, g.rotate(90, expand=True)))
             if s1 > s0 + 2:
                 return "장기"
             return None
@@ -540,8 +556,11 @@ class Analyzer:
                 t = re.sub(r"\s", "", "".join(w.text for w in self.eng.words(img.crop((0, 0, W, int(H * .13))))))
                 if len(re.findall(r"[가-힣]", t)) >= 4:
                     seen = True
-                ok = (("고지" in t or "계약체결" in t or "금융소비자" in t) if kind == "G"
-                      else ("신용" in t or "동의서" in t or "개인" in t))
+                if kind == "G":
+                    # 제목에 '고지'가 없으면(글자인식 실수 대비) 맨 위 [계약자 명|보험사명] 칸 모양까지 맞아야 인정
+                    ok = is_g_title(t) or (("금융소비자" in t or "계약체결" in t) and header_cells(img) is not None)
+                else:
+                    ok = is_c_title(t)
                 if ok:
                     return kind, rr
             if not seen:
@@ -556,8 +575,14 @@ class Analyzer:
     def group(self, pages):
         if self.mode == MODE_APP:
             return [pages]
+        if self.mode == MODE_AUTO and not any(p["kind"] in ("G", "C") for p in pages):
+            return [pages]  # 3종서류가 없는 파일 = 청약서 1건
         groups, cur = [], []
         for p in pages:
+            if p["kind"] == "G" and not any(q["kind"] == "C" for q in cur):
+                # 동의서 없이 나온 고지의무확인서로는 나누지 않음 (청약서 중간 장 오인 방지)
+                log.info("p%d: 동의서 앞에 나온 고지의무확인서 → 나누지 않음", p["i"] + 1)
+                p["kind"], p["gx"] = "X", True
             cur.append(p)
             if p["kind"] == "G":
                 groups.append(cur)
@@ -585,7 +610,7 @@ class Analyzer:
                 it["warns"].append("읽기 오류")
             it["no"] = k + 1
             items.append(it)
-        if self.mode != MODE_APP:  # 3종서류는 한 묶음이 보통 같은 취급자
+        if self.mode != MODE_APP and not (self.mode == MODE_AUTO and len(items) == 1 and items[0].get("mode") == MODE_APP):
             agents = [it["agent"] for it in items if it["agent"]]
             common = max(set(agents), key=agents.count) if agents else ""
             for it in items:
@@ -615,9 +640,13 @@ class Analyzer:
         nblank = kinds.count("blank")
         if nblank:
             it["warns"].append("빈 페이지 포함")
-        if self.mode == MODE_APP:
+        if self.mode == MODE_APP or (self.mode == MODE_AUTO and not any(k in ("G", "C") for k in kinds)):
+            if self.mode == MODE_AUTO:
+                it["mode"] = MODE_APP
             self._extract_app(grp, it)
             return it
+        if self.mode == MODE_AUTO:
+            return self._extract_auto(grp, it, kinds, nblank)
 
         G = next((p for p in grp if p["kind"] == "G"), None)
         C = next((p for p in reversed(grp) if p["kind"] == "C"), None)
@@ -670,6 +699,72 @@ class Analyzer:
         if self.is_long and not it["ver"] and "버전 판별 불가" not in it["warns"] and self.mode != MODE_APP \
                 and "비교설명서 누락" not in it["warns"]:
             it["warns"].append("버전 판별 불가")
+        if self.eng is None:
+            return it
+        self._extract_3jong(G, C, it)
+        return it
+
+    def _cat_from_text(self, t):
+        t = re.sub(r"\s", "", t)
+        up = t.upper()
+        if any(k in t for k in ("자동차", "대인배상", "대물배상", "자기신체", "자기차량", "차량번호", "운전자범위",
+                                "애니카", "프로미카", "하이카", "매직카", "레디카")) or \
+                any(k in up for k in ("ANYCAR", "HICAR", "READYCAR", "MAGICCAR", "PROMY")):
+            return CAT_CAR, True
+        if "일반보험" in t or "화재보험" in t or "배상책임" in t:
+            return CAT_GEN, True
+        if "장기" in t or "생명" in t or "건강보험" in t or "종신" in t:
+            return CAT_LONG, True
+        return CAT_LONG, False
+
+    def _extract_auto(self, grp, it, kinds, nblank):
+        """자동 판별: 비교설명서 양식으로 상품 구분, 장수로 3종/청약서+3종·신/구버전."""
+        G = next((p for p in grp if p["kind"] == "G"), None)
+        C = next((p for p in reversed(grp) if p["kind"] == "C"), None)
+        if G is None:
+            it["warns"].append("고지의무확인서 누락")
+        if C is None:
+            it["warns"].append("개인정보동의서 누락")
+        if kinds.count("C") > 1 or any(p.get("gx") for p in grp):
+            it["warns"].append("2건 병합 의심")
+        end = grp.index(C) if C is not None else (grp.index(G) if G is not None else len(grp))
+        before = [p for p in grp[:end] if p["kind"] == "X"]
+        near = before[::-1]
+        types = []
+        for p in near[:2]:
+            t = self._b_type(p)
+            types.append(t)
+            if t in (CAT_CAR, CAT_GEN) or t is None:
+                break
+        cat, nb, sure = None, 0, False
+        if types and types[0] in (CAT_CAR, CAT_GEN):
+            cat, nb, sure = types[0], 1, True
+        elif types and types[0] == CAT_LONG:
+            cat, sure = CAT_LONG, True
+            nb = 2 if len(types) > 1 and types[1] == CAT_LONG else 1
+            it["ver"] = "신" if nb == 2 else "구"
+        if not near:
+            it["warns"].append("비교설명서 누락")
+        if cat is None and self.eng is not None and grp[0]["kind"] == "X" and len(near) > 2:
+            try:  # 비교설명서로 모르면 청약서 첫 장 글자로
+                cat, sure = self._cat_from_text("".join(w.text for w in self.eng.words(self.doc.render(grp[0]["i"], 100))))
+            except Exception as e:
+                log.warning("구분 판별 실패: %s", e)
+        if cat is None:
+            cat = CAT_LONG
+        if not sure:
+            it["warns"].append("구분 확인")
+        if nb == 0:
+            nb = min(len(near), 2 if cat == CAT_LONG else 1)
+        extra = len(near) - nb
+        it["cat"] = cat
+        it["mode"] = MODE_MIX if extra > 0 else MODE_3
+        if cat == CAT_LONG:
+            if it["ver"] == "구":
+                it["warns"].append("구버전 적용")
+            elif not it["ver"] and near:
+                it["warns"].append("버전 판별 불가")
+        log.info("자동 판별: %s %s 비교설명서=%s 청약서=%d장 버전=%s", cat, it["mode"], types, max(0, extra), it["ver"] or "-")
         if self.eng is None:
             return it
         self._extract_3jong(G, C, it)
@@ -786,6 +881,10 @@ class Analyzer:
                 log.info("청약서 %d쪽 읽은 내용(이름 가림):\n" % (n + 1) + "\n".join("    " + mask(t) for t, _ in lines))
                 W = img.width
                 full = "\n".join(join_split(t) for t, _ in lines)
+                if self.mode == MODE_AUTO and not it.get("cat"):
+                    it["cat"], sure = self._cat_from_text(full)
+                    if not sure:
+                        it["warns"].append("구분 확인")
                 if not it["contractor"]:
                     c = [m.group(1) for m in re.finditer(r"([가-힣]{2,4})\s*님\s*을\s*위\s*한", full) if is_name(m.group(1))]
                     c += names_next_to(lines, r"계\s*약\s*자", exclude_pat=r"(피\s*보\s*[험혐]|대\s*리|전)", page_w=W)
@@ -800,9 +899,12 @@ class Analyzer:
                     it["agent"] = (hits[0] if len(hits) == 1 else
                                    next((h for h in hits if h in a), "") or snap_agent(pick(a), self.roster))
                 if not it["ins"]:
-                    it["ins"], how = insurer_from_text(full, self.alias, self.cat in ("자동차", "일반"))
+                    it["ins"], how = insurer_from_text(full, self.alias, (it.get("cat") or self.cat) in ("자동차", "일반"))
                     if it["ins"]:
                         log.info("보험사: %s (%s)", it["ins"], how)
+                        if how == "브랜드" and self.mode == MODE_AUTO and "구분 확인" in it["warns"]:
+                            it["cat"] = CAT_CAR  # 자동차보험 브랜드(애니카·하이카 등)가 보이면 자동차
+                            it["warns"].remove("구분 확인")
                 if not it.get("product_hint"):
                     m = re.search(r"상\s*품\s*명\s*[:：]?\s*(.+)", full)
                     if m:
@@ -832,22 +934,29 @@ def _safe(s):
     return BAD.sub("", (s or "").strip())
 
 
+def item_prefix(it, mode, cat):
+    """접두어: 3종 → 3종 / 청약서 → 장기·자동차·일반 / 청약서+3종 → 장기3종·자동차3종·일반3종"""
+    if it.get("kind"):
+        return it["kind"]
+    m = it.get("mode") or mode
+    c = it.get("cat") or cat or CAT_LONG
+    return "3종" if m == MODE_3 else (c if m == MODE_APP else c + "3종")
+
+
 def make_names(items, mode, cat):
-    """파일 이름: 접두어_보험사_취급자_계약자[_피보험자][_상품명][_구][_장수]
-    접두어: 3종 → 3종 / 청약서 → 장기·자동차·일반 / 청약서+3종 → 장기3종·자동차3종·일반3종"""
-    cat = cat or CAT_LONG
-    prefix = "3종" if mode == MODE_3 else (cat if mode == MODE_APP else cat + "3종")
+    """파일 이름: 접두어_보험사_취급자_계약자[_피보험자][_상품명][_구][_장수]"""
     names, used = [], {}
     for it in items:
-        parts = [prefix, it.get("ins") or "보험사", it.get("agent") or "취급자", it.get("contractor") or "계약자"]
+        pre = item_prefix(it, mode, cat)
+        parts = [pre, it.get("ins") or "보험사", it.get("agent") or "취급자", it.get("contractor") or "계약자"]
         ins_d = (it.get("insured") or "").strip()
         if ins_d and ins_d != it.get("contractor"):
             parts.append(ins_d)
         if (it.get("product") or "").strip():
             parts.append(it["product"])
-        if it.get("ver") == "구" and cat == CAT_LONG and mode != MODE_APP:
+        if it.get("ver") == "구" and pre in ("3종", "장기3종"):
             parts.append("구")
-        if mode == MODE_MIX:
+        if pre.endswith("3종") and pre != "3종":
             parts.append(str(it.get("count") or len(it.get("pages", []))))
         nm = "_".join(p for p in (_safe(x) for x in parts) if p)
         n = used.get(nm, 0) + 1
