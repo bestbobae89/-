@@ -132,19 +132,18 @@ textarea.inp{width:100%;height:70px;resize:vertical}
 <section class="screen" id="review">
  <div class="bar"><b>PDF 분할·파일명 작성기</b><span class="ctx" id="rvCtx"></span><div class="r"><button class="lnk" data-act="exportlog">오류 기록 저장</button><button class="lnk" data-act="roster">명단 관리</button></div></div>
  <div class="main" style="gap:10px;overflow:hidden">
-  <div style="display:flex;align-items:center;gap:10px;min-height:34px"><div class="cnt" id="cnt"></div><button class="btn p" id="rereadBtn" style="display:none"></button>
+  <div style="display:flex;align-items:center;gap:10px;min-height:34px"><div class="cnt" id="cnt"></div>
    <div style="margin-left:auto;display:flex;gap:8px;align-items:center" id="navW"><span class="wbadge" id="wBadge"></span><button class="btn" id="prevW">◀ 이전 건</button><span class="navpos" id="navPos"></span><button class="btn" id="nextW">다음 건 ▶</button></div>
    <div style="margin-left:auto;display:none" id="navOk"><span class="okbadge">✔ 저장 가능</span></div></div>
   <div class="banner" id="banner" style="display:none"></div>
   <div class="panel split"><div class="tblw"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
    <div class="gut" id="gut" title="끌어서 크기 조절"></div>
    <div class="pv"><div class="ph"><span id="pvTitle"></span><span class="hint" id="pvSub" style="font-weight:400"></span><span class="offmark" id="offMark" style="display:none">이 페이지는 제외됨</span>
-     <span style="margin-left:auto;display:flex;gap:6px"><button class="btn s" id="splitBtn" title="지금 보는 장부터 뒤를 새 건으로 나눕니다">여기서 새 건 시작</button><button class="btn s" id="mergeBtn" title="이 건을 앞 건 뒤에 붙입니다">앞 건과 합치기</button></span></div>
+     <span style="margin-left:auto;display:flex;gap:6px"><button class="btn s warnb" id="pgOff" title="지금 보는 장을 이 건에서 뺍니다">페이지 삭제</button><button class="btn s" id="rereadBtn" title="이 건의 이름·보험사·취급자를 다시 읽습니다">새로고침</button><button class="btn s" id="undoBtn" title="마지막 작업을 취소합니다">되돌리기</button><button class="btn s" id="mergeBtn" title="이 건을 앞 건 뒤에 붙입니다">앞 건과 합치기</button></span></div>
     <div class="vp" id="vp"><img id="pvImg" alt=""></div>
     <div class="thumbs" id="thumbs"></div>
     <div class="pvc"><button class="btn s" id="pgPrev">◀</button><span id="pgPos" style="min-width:60px;text-align:center"></span><button class="btn s" id="pgNext">▶</button>
      <span style="width:8px"></span><button class="btn s" id="goTop">맨 위</button><button class="btn s" id="goBot">맨 아래</button>
-     <span style="width:8px"></span><button class="btn s warnb" id="pgOff">이 페이지 제외</button>
      <span style="margin-left:auto"></span><button class="btn zb" id="zOut" title="축소">−</button><span class="zl" id="zLabel"></span><button class="btn zb" id="zIn" title="확대">+</button></div>
    </div></div>
  </div>
@@ -234,17 +233,18 @@ async function poll(){
  if(j.error){await errorModal('처리 오류','문서 처리 중 오류가 발생했습니다.\n'+j.error);show('start');return}
  const r=await api.result();S.items=r.items;S.names=r.names;S.srcFiles=r.files||[];S.ocr=r.ocr;S.ocrNote=r.ocr_note;
  S.items.forEach(it=>{it.warns=(it.warns||[]).filter(w=>w!=='동일상품 확인');it.product=''});
- S.sel=firstWarn();S.pg=defaultPage(S.items[S.sel]);S.pvTarget='top';renderReview();show('review')}
+ UNDO.length=0;S.sel=firstWarn();S.pg=defaultPage(S.items[S.sel]);S.pvTarget='top';renderReview();show('review')}
 
 const TIPS={
- '다시 읽기 필요':'페이지 순서를 바꾸거나 나누기·합치기를 했습니다. 다 고친 뒤 위쪽 [다시 읽기]를 누르면 이름·보험사·취급자를 다시 읽습니다.',
+ '새로고침 필요':'페이지를 삭제하거나 순서를 바꾸거나 합쳤습니다. 다 고친 뒤 미리보기 위 [새로고침]을 누르면 이름·보험사·취급자를 다시 읽습니다.',
+ '차량번호 미인식':'차량번호를 찾지 못했습니다. 신차이거나 번호가 없는 경우 비워 두어도 됩니다. 있으면 직접 입력하십시오.',
  '구분 확인':'서류 종류나 상품 구분(장기·자동차·일반)을 확실히 판별하지 못했습니다. [구분] 칸을 확인하고 다르면 변경하십시오.',
  '구버전 적용':'비교설명서가 1장이라 구버전으로 판별했습니다. 파일명 끝에 _구가 붙습니다. 맞으면 [확인]을 누르십시오. 다르면 버전 칸에서 변경하십시오.',
  '버전 판별 불가':'페이지 수로 신/구버전을 판별할 수 없습니다. 원본을 보고 버전 칸에서 선택하십시오.',
  '상품구분 불일치(확인필요)':'선택한 상품 구분과 이 건의 비교설명서 양식이 다릅니다. 맞으면 [확인]을 누르고, 아니면 [−]로 제외한 뒤 해당 상품 구분으로 따로 작업하십시오.',
  '동일상품 확인':'같은 계약자·피보험자·보험사 건이 2건 이상입니다. 상품명을 입력하면 파일명에 추가되고, 입력하지 않으면 (2)가 붙습니다.',
  '2건 병합 의심':'한 건에 개인정보동의서가 여러 장이거나 페이지가 너무 많습니다. 2건이 하나로 묶였을 수 있으니 원본을 확인하십시오.',
- '빈 페이지 포함':'내용이 거의 없는 페이지가 포함되어 있습니다. 미리보기에서 확인하고, 빼야 하면 [이 페이지 제외]를 누르십시오.',
+ '빈 페이지 포함':'내용이 거의 없는 페이지가 포함되어 있습니다. 미리보기에서 확인하고, 빼야 하면 [페이지 삭제]를 누르십시오.',
  '모든 페이지 제외':'이 건의 페이지가 모두 제외되어 저장되지 않습니다.',
  '개인정보동의서 누락':'개인(신용)정보처리동의서를 찾지 못했습니다.',
  '고지의무확인서 누락':'고지의무확인서를 찾지 못했습니다. 다음 건과 묶였을 수 있습니다.',
@@ -260,22 +260,25 @@ function dupKey(it){return [it.contractor,it.insured,it.ins,(it.product||'').tri
 function dupSet(){const c={};S.items.forEach(it=>{if(it.skip||!it.contractor||!it.ins)return;const k=dupKey(it);c[k]=(c[k]||0)+1});return c}
 let DUP={};
 function activePages(it){return it.pages.filter(p=>!p.off)}
-function warnsOf(it){if(it.skip)return[];if(it.dirty)return['다시 읽기 필요'];if(it.ack)return[];const w=[...(it.warns||[])];
+function warnsOf(it){if(it.skip)return[];if(it.dirty)return['새로고침 필요'];if(it.ack)return[];const w=[...(it.warns||[])];
  if(!activePages(it).length)w.unshift('모든 페이지 제외');
  const bi=w.indexOf('빈 페이지 포함');if(bi>=0&&!it.pages.some(p=>p.kind==='blank'&&!p.off))w.splice(bi,1);
  if(!it.ins)w.push('보험사명 미인식');if(!it.contractor)w.push('계약자명 미인식');if(!it.agent)w.push('취급자명 미인식');
+ if(prefixOf(it).startsWith('자동차')&&!(it.plate||'').trim())w.push('차량번호 미인식');
  if(verNeeded(it)&&!it.ver&&!w.includes('버전 판별 불가'))w.push('버전 판별 불가');
  if(!verNeeded(it)){const k=w.indexOf('버전 판별 불가');if(k>=0)w.splice(k,1);const g=w.indexOf('구버전 적용');if(g>=0&&!verNeeded(it))w.splice(g,1)}
  if(it.ver&&w.includes('버전 판별 불가')&&it.verSet)w.splice(w.indexOf('버전 판별 불가'),1);
  if(it.contractor&&it.ins&&(DUP[dupKey(it)]||0)>1)w.push('동일상품 확인');return w}
 function firstWarn(){DUP=dupSet();const i=S.items.findIndex(it=>warnsOf(it).length);return i<0?0:i}
-function cols(){const c=[['skip',''],['no','No'],['kind','구분'],['ins','보험사'],['agent','취급자'],['contractor','계약자'],['insured','피보험자'],['product','상품명']];
+function hasCar(){return S.items.some(it=>prefixOf(it).startsWith('자동차'))}
+function cols(){const c=[['skip',''],['no','No'],['kind','구분'],['ins','보험사'],['agent','취급자'],['contractor','계약자'],['insured','피보험자']];
+ if(hasCar())c.push(['plate','차량번호']);c.push(['product','상품명']);
  c.push(['ver','버전'],['count','장수']);c.push(['st','상태'],['fn','저장될 파일 이름']);return c}
 const TOPF=new Set(['ins','contractor','insured','product']);
 function renderReview(){
  DUP=dupSet();
  $('#rvCtx').textContent=ctxText();
- $('#thead').innerHTML=cols().map(([k,l])=>`<th${k==='skip'?' style="width:34px"':''}>${l}</th>`).join('');
+ $('#thead').innerHTML=cols().map(([k,l])=>`<th data-c="${k}"${k==='skip'?' style="width:34px"':''}>${l}</th>`).join('');
  $('#agentList').innerHTML=S.agents.map(a=>`<option value="${esc(a)}">`).join('');
  const tb=$('#tbody');tb.innerHTML='';
  const opts='<option value=""></option>'+S.insurers.map(n=>`<option>${esc(n)}</option>`).join('');
@@ -287,6 +290,7 @@ function renderReview(){
    if(k==='agent')return`<td style="min-width:104px"><input data-k="agent" list="agentList"></td>`;
    if(k==='contractor')return`<td style="min-width:96px"><input data-k="contractor"></td>`;
    if(k==='insured')return`<td style="min-width:90px"><input data-k="insured" placeholder="같음"></td>`;
+   if(k==='plate')return`<td style="min-width:104px"><input data-k="plate" style="min-width:96px" placeholder="—" title="자동차 건만 파일명에 추가됩니다"></td>`;
    if(k==='product')return`<td style="width:110px"><input data-k="product" placeholder="—" title="입력하면 파일명에 추가됩니다"></td>`;
    if(k==='kind')return`<td style="width:96px"><select data-k="kind" style="min-width:86px">${KINDS.map(x=>`<option>${x}</option>`).join('')}</select></td>`;
    if(k==='ver')return`<td style="width:58px"><select class="ver" data-k="ver"><option value="">?</option><option value="신">신</option><option value="구">구</option></select></td>`;
@@ -296,7 +300,7 @@ function renderReview(){
   tr.querySelectorAll('[data-k]').forEach(el=>{el.value=el.dataset.k==='kind'?prefixOf(it):(it[el.dataset.k]||'');
    const on=()=>{const k=el.dataset.k;it[k]=el.value.trim();if(k==='kind'){it.warns=(it.warns||[]).filter(w=>w!=='구분 확인');if(el.value.startsWith('장기')||el.value==='3종')it.cat=it.cat||'장기';if(el.value!=='3종')it.cat=el.value.replace('3종','')}
     if(k==='ver'){it.verSet=true;it.warns=(it.warns||[]).filter(w=>w!=='버전 판별 불가'&&w!=='구버전 적용')}
-    it.ack=false;refreshAll()};
+    it.ack=false;if(k==='kind'&&hasCar()!==!!$('#thead [data-c=plate]')){renderReview();scheduleNames();return}refreshAll()};
    el.addEventListener('input',on);el.addEventListener('change',on);
    el.addEventListener('focus',()=>{S.pvTarget=el.dataset.k==='agent'?'bottom':TOPF.has(el.dataset.k)?'top':S.pvTarget;select(idx,false,true)})});
   tr.querySelector('.minus').onclick=e=>{e.stopPropagation();it.skip=!it.skip;e.target.textContent=it.skip?'+':'−';refreshAll()};
@@ -306,35 +310,34 @@ function renderReview(){
  if(!S.ocr){b.style.display='';b.textContent='글자 인식을 사용할 수 없어 정보를 읽지 못했습니다. 분할은 완료되었으므로 오른쪽 원본을 보고 직접 입력하십시오.'}else b.style.display='none';
  updateSummary();select(S.sel,true,true)}
 async function ackItem(idx,tr,it){const w=warnsOf(it);
- if(w[0]==='다시 읽기 필요'){await modal('다시 읽기','이 건은 페이지를 바꿨습니다. 위쪽 [다시 읽기]를 누르면 정보를 다시 읽습니다.',[['확인',1,true]]);return}
+ if(w[0]==='새로고침 필요'){await modal('새로고침','이 건은 페이지를 바꿨습니다. 미리보기 위 [새로고침]을 누르면 정보를 다시 읽습니다.',[['확인',1,true]]);return}
  if(w.includes('2건 병합 의심')){select(idx,false);
   const why=(it.why&&it.why['2건 병합 의심'])||TIPS['2건 병합 의심'];
-  const ok=await modal('2건 병합 의심',why+'\n\n미리보기에서 확인하고, 2건이 맞으면 해당 장에서 [여기서 새 건 시작]을 누르십시오.\n한 건이 맞으면 [확인 완료]를 누르십시오.',[['닫기',0],['확인 완료',1,true]]);
+  const ok=await modal('2건 병합 의심',why+'\n\n미리보기에서 확인하고, 한 건이 맞으면 [확인 완료]를 누르십시오.\n2건이 맞으면 [−]로 이 건을 제외하고 따로 스캔하여 작업하십시오.',[['닫기',0],['확인 완료',1,true]]);
   if(!ok)return}
  it.ack=true;refreshRow(tr,it);updateSummary()}
 function renumber(){S.items.forEach((x,i)=>x.no=i+1)}
 function structChanged(){renumber();$('#thumbs').dataset.for='';renderReview();scheduleNames()}
-$('#splitBtn').onclick=async()=>{const it=S.items[S.sel];if(!it)return;
- if(S.pg===0){await modal('여기서 새 건 시작','첫 장에서는 나눌 수 없습니다. 새 건이 시작되는 장으로 이동한 뒤 누르십시오.',[['확인',1,true]]);return}
- const nw={src:it.src,file:it.file,pages:it.pages.slice(S.pg),warns:[],ins:'',agent:'',contractor:'',insured:'',product:'',ver:'',cat:it.cat,mode:it.mode,dirty:true};
- it.pages=it.pages.slice(0,S.pg);it.dirty=true;it.ack=false;
- [it,nw].forEach(x=>x.count=activePages(x).length);
- S.items.splice(S.sel+1,0,nw);S.sel=S.sel+1;S.pg=0;structChanged()};
+const UNDO=[];
+function snap(){UNDO.push({items:JSON.parse(JSON.stringify(S.items)),sel:S.sel,pg:S.pg});if(UNDO.length>30)UNDO.shift();updUndo()}
+function updUndo(){$('#undoBtn').disabled=!UNDO.length}
+$('#undoBtn').onclick=()=>{const u=UNDO.pop();if(!u)return;S.items=u.items;S.sel=Math.min(u.sel,S.items.length-1);S.pg=u.pg;updUndo();
+ $('#thumbs').dataset.for='';renderReview();scheduleNames()};
 $('#mergeBtn').onclick=async()=>{const it=S.items[S.sel];if(!it)return;
  if(S.sel===0){await modal('앞 건과 합치기','첫 번째 건이라 합칠 앞 건이 없습니다.',[['확인',1,true]]);return}
  const prev=S.items[S.sel-1];
  if((prev.src||0)!==(it.src||0)){await modal('앞 건과 합치기','다른 파일의 건과는 합칠 수 없습니다.',[['확인',1,true]]);return}
  if(!(await modal('앞 건과 합치기',`No.${it.no} 건(${it.pages.length}장)을 No.${prev.no} 건 뒤에 붙이시겠습니까?`,[['취소',0],['합치기',1,true]])))return;
- const at=prev.pages.length;prev.pages=prev.pages.concat(it.pages);prev.count=activePages(prev).length;prev.dirty=true;prev.ack=false;
+ snap();const at=prev.pages.length;prev.pages=prev.pages.concat(it.pages);prev.count=activePages(prev).length;prev.dirty=true;prev.ack=false;
  S.items.splice(S.sel,1);S.sel=S.sel-1;S.pg=at;structChanged()};
-async function doReread(){const d=S.items.filter(x=>x.dirty);if(!d.length)return;
- $('#mT').textContent='다시 읽기';$('#mB').textContent=`${d.length}건을 다시 읽는 중…`;$('#mF').innerHTML='';$('#modal').classList.add('on');
+async function doReread(list){const d=list||[S.items[S.sel]];if(!d.length||!d[0])return;snap();
+ $('#mT').textContent='새로고침';$('#mB').textContent=d.length>1?`${d.length}건을 다시 읽는 중…`:'다시 읽는 중…';$('#mF').innerHTML='';$('#modal').classList.add('on');
  try{const r=await api.reread(d.map(x=>({src:x.src||0,file:x.file,pages:x.pages,product:x.product||'',skip:!!x.skip})));
   d.forEach((x,k)=>{const i=S.items.indexOf(x);const n=r[k];n.no=x.no;S.items[i]=n});
   S.names=await api.names(S.items)}
- catch(e){$('#modal').classList.remove('on');await errorModal('다시 읽기 오류',String(e));return}
+ catch(e){$('#modal').classList.remove('on');await errorModal('새로고침 오류',String(e));return}
  $('#modal').classList.remove('on');$('#thumbs').dataset.for='';renderReview()}
-$('#rereadBtn').onclick=doReread;
+$('#rereadBtn').onclick=()=>doReread();
 function refreshAll(){DUP=dupSet();document.querySelectorAll('#tbody tr').forEach(tr=>refreshRow(tr,S.items[+tr.dataset.idx]));updateSummary();scheduleNames()}
 function refreshRow(tr,it){const idx=+tr.dataset.idx,w=warnsOf(it);
  tr.classList.toggle('w',w.length>0);tr.classList.toggle('out',!!it.skip);tr.classList.toggle('sel',idx===S.sel);
@@ -343,6 +346,7 @@ function refreshRow(tr,it){const idx=+tr.dataset.idx,w=warnsOf(it);
  st.dataset.tips=JSON.stringify(it.skip?['제외됨']:w);
  const fn=tr.querySelector('.fn');fn.textContent=S.names[idx]||'';fn.title=S.names[idx]||'';
  tr.querySelectorAll('[data-k=ins],[data-k=contractor],[data-k=agent]').forEach(el=>el.classList.toggle('miss',!it.skip&&!it[el.dataset.k]));
+ const pl=tr.querySelector('[data-k=plate]');if(pl){const car=prefixOf(it).startsWith('자동차');pl.style.visibility=car?'visible':'hidden';pl.classList.toggle('miss',car&&!it.skip&&!(it.plate||'').trim())}
  const vs=tr.querySelector('[data-k=ver]');if(vs){const need=verNeeded(it);vs.disabled=!need;vs.style.visibility=need?'visible':'hidden'}}
 const tip=$('#tip');
 function hideTip(){tip.style.display='none'}
@@ -353,7 +357,7 @@ document.addEventListener('mouseover',e=>{const st=e.target.closest&&e.target.cl
  const r=st.getBoundingClientRect();tip.style.display='block';
  tip.style.left=Math.min(window.innerWidth-330,r.left)+'px';tip.style.top=(r.bottom+4+tip.offsetHeight>window.innerHeight?r.top-tip.offsetHeight-4:r.bottom+4)+'px'});
 function updateSummary(){const n=S.items.length,sk=S.items.filter(it=>it.skip).length;
- const dn=S.items.filter(it=>it.dirty).length;const rb=$('#rereadBtn');rb.style.display=dn?'':'none';rb.textContent=`다시 읽기 (${dn}건)`;
+ updUndo();
  const wl=S.items.map((it,i)=>warnsOf(it).length?i:-1).filter(i=>i>=0),wn=wl.length,pos=wl.indexOf(S.sel);
  $('#cnt').innerHTML=`전체 <b>${n}건</b> · 저장 대상 <b>${n-sk}건</b> · 제외 <b>${sk}건</b>`;
  $('#navW').style.display=wn?'flex':'none';$('#navOk').style.display=wn?'none':'block';
@@ -386,11 +390,11 @@ async function renderPreview(){const it=S.items[S.sel];if(!it)return;const tok=+
    im.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();im.classList.add('dropto')});
    im.addEventListener('dragleave',()=>im.classList.remove('dropto'));
    im.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();const from=S.dragK,to=k;S.dragK=null;if(from==null||from===to)return;
-    const cur=S.items[S.sel];const [m]=cur.pages.splice(from,1);cur.pages.splice(to,0,m);cur.dirty=true;cur.ack=false;S.pg=to;
+    snap();const cur=S.items[S.sel];const [m]=cur.pages.splice(from,1);cur.pages.splice(to,0,m);cur.dirty=true;cur.ack=false;S.pg=to;
     th.dataset.for='';refreshAll();renderPreview()});
    pageImg(it.src||0,p,140).then(src=>{if(th.dataset.for===String(S.sel))im.src=src})})}
  [...th.children].forEach((im,k)=>{im.classList.toggle('on',k===S.pg);im.classList.toggle('off',!!it.pages[k].off);im.title=(it.pages[k].off?'제외된 페이지 · ':'')+'끌어서 순서 변경'});
- const off=!!it.pages[S.pg].off;$('#pgOff').textContent=off?'이 페이지 다시 포함':'이 페이지 제외';$('#offMark').style.display=off?'':'none';
+ const off=!!it.pages[S.pg].off;$('#pgOff').textContent=off?'삭제 취소':'페이지 삭제';$('#offMark').style.display=off?'':'none';
  const vp=$('#vp'),img=$('#pvImg');vp.classList.toggle('fitp',S.zoom==='p');
  const big=S.zoom==='150'||S.zoom==='200';
  const src=await pageImg(it.src||0,it.pages[S.pg],big?1800:1100);if(tok!==pvToken)return;
@@ -401,7 +405,7 @@ async function renderPreview(){const it=S.items[S.sel];if(!it)return;const tok=+
 $('#pgPrev').onclick=()=>{const it=S.items[S.sel];S.pg=(S.pg-1+it.pages.length)%it.pages.length;renderPreview()};
 $('#pgNext').onclick=()=>{const it=S.items[S.sel];S.pg=(S.pg+1)%it.pages.length;renderPreview()};
 $('#goTop').onclick=()=>{S.pvTarget='top';$('#vp').scrollTop=0;renderPreview()};
-$('#pgOff').onclick=()=>{const it=S.items[S.sel];const p=it.pages[S.pg];p.off=!p.off;it.count=activePages(it).length;
+$('#pgOff').onclick=()=>{snap();const it=S.items[S.sel];const p=it.pages[S.pg];p.off=!p.off;it.count=activePages(it).length;if(p.kind!=='blank')it.dirty=true;
  const tr=document.querySelector(`#tbody tr[data-idx="${S.sel}"]`);if(tr){const c=tr.querySelector('td.cnt');if(c)c.textContent=it.count+'장'}
  refreshAll();renderPreview()};
 $('#goBot').onclick=()=>{S.pvTarget='bottom';const v=$('#vp');v.scrollTop=v.scrollHeight;renderPreview()};
@@ -422,8 +426,8 @@ $('#toStart').onclick=async()=>{if(await modal('뒤로가기','수정한 내용�
 $('#saveBtn').onclick=async()=>{
  if(!S.outDir){const d=await api.choose_folder();if(!d)return;S.outDir=d}
  const dn=S.items.filter(it=>it.dirty&&!it.skip).length;
- if(dn){const c=await modal('저장',`다시 읽지 않은 건이 ${dn}건 있습니다.\n다시 읽은 뒤 확인하시겠습니까?\n(칸을 직접 모두 고쳤다면 그대로 저장해도 됩니다.)`,[['취소',0],['그대로 저장',1],['다시 읽기',2,true]]);
-  if(!c)return;if(c===2){await doReread();return}}
+ if(dn){const c=await modal('저장',`새로고침하지 않은 건이 ${dn}건 있습니다.\n새로고침한 뒤 확인하시겠습니까?\n(칸을 직접 모두 고쳤다면 그대로 저장해도 됩니다.)`,[['취소',0],['그대로 저장',1],['모두 새로고침',2,true]]);
+  if(!c)return;if(c===2){await doReread(S.items.filter(it=>it.dirty&&!it.skip));return}}
  const wn=S.items.filter(it=>warnsOf(it).length).length,n=S.items.filter(it=>!it.skip).length;
  if(wn&&!(await modal('저장','확인 필요 건이 '+wn+'건 남아 있습니다.\n'+n+'개 파일을 저장하시겠습니까?',[['돌아가서 확인',0],['저장',1,true]])))return;
  $('#saveBtn').disabled=true;$('#saveBtn').textContent='저장 중…';

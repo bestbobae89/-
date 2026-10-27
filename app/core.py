@@ -265,6 +265,26 @@ def mask(t):
                   else "○" * len(m.group(0)), t)
 
 
+# ------------------------------------------------------------------ 차량번호
+_PLATE_CH = "가나다라마거너더러머버서어저고노도로모보소오조구누두루무부수우주아바사자배하허호육해공국합"
+_PLATE = re.compile(r"(?<![\d가-힣])((?:[가-힣]{2}\s?)?\d{2,3}\s?[" + _PLATE_CH + r"]\s?\d{4})(?!\d)")
+
+
+def plate_in_text(text):
+    """차량번호 찾기: '차량번호' 칸 근처 우선. 예) 12가3456, 123가4567, 서울12가3456"""
+    lines = (text or "").splitlines()
+    cands = []
+    for k, ln in enumerate(lines):
+        near = any(re.search(r"차\s*량\s*번\s*호|차\s*번\s*호|차량\s*No", lines[j]) for j in range(max(0, k - 1), k + 1))
+        for m in _PLATE.finditer(ln):
+            v = re.sub(r"\s", "", m.group(1))
+            cands.append((0 if near else 1, v))
+    if not cands:
+        return ""
+    cands.sort(key=lambda c: c[0])
+    return cands[0][1]
+
+
 # ------------------------------------------------------------------ 칸 제목 옆 이름 찾기
 _SKIP_TOK = re.compile(r"^[:：.;,()\[\]|·ㆍ\-/]*(명|성명|이름|성 명|\(성명\)|\(인\))?[:：.;,()\[\]|·ㆍ\-/]*$")
 _LABEL_TOK = re.compile(r"(계약자|피보험자|보험자|설계사|모집인|모집자|취급자|판매자|담당자|수익자|성명|주민|생년|관계|연락처|주소|직업|매니저|지점장)")
@@ -477,6 +497,7 @@ class Analyzer:
         self.last_agent = last_agent
         self.progress = progress or (lambda *a: None)
         self.canon, self.alias = load_insurers(nonlife_only=cat in ("자동차", "일반"))
+        self.nonlife = set(load_insurers(nonlife_only=True)[0])
         self.logos = logos
         self.roster = [r.strip() for r in (roster or []) if r and r.strip()]
 
@@ -677,7 +698,7 @@ class Analyzer:
     def blank_item(self, grp):
         return {"pages": [{k: p[k] for k in ("i", "rot", "kind", "gr", "gx") if k in p} for p in grp],
                 "ver": "", "ins": "", "agent": "", "contractor": "", "insured": "",
-                "product": "", "count": len(grp), "warns": []}
+                "product": "", "plate": "", "count": len(grp), "warns": []}
 
     def extract(self, grp):
         it = self.blank_item(grp)
@@ -748,6 +769,8 @@ class Analyzer:
         self._extract_3jong(G, C, it)
         if not it["agent"]:
             self._agent_from_pages(grp, it)
+        if self.cat == CAT_CAR and self.mode == MODE_MIX:
+            self._plate_from_pages(grp, it, exclude=b_near[:1])
         return it
 
     def _merge_check(self, grp, it):
@@ -852,7 +875,24 @@ class Analyzer:
         self._extract_3jong(G, C, it)
         if not it["agent"]:
             self._agent_from_pages(grp, it)
+        if cat == CAT_CAR and it["mode"] == MODE_MIX:
+            self._plate_from_pages(grp, it, exclude=near[:nb])
         return it
+
+    def _plate_from_pages(self, grp, it, exclude=()):
+        """자동차 청약서 장에서 차량번호 찾기 (앞에서부터 최대 3장)."""
+        ex = {p["i"] for p in exclude}
+        for p in [q for q in grp if q["kind"] == "X" and q["i"] not in ex][:3]:
+            try:
+                words, _ = self._read_page(p)
+            except Exception as e:
+                log.warning("차량번호 읽기 실패 p%d: %s", p["i"] + 1, e)
+                continue
+            v = plate_in_text("\n".join(join_split(t) for t, _ in group_lines(words)))
+            if v:
+                it["plate"] = v
+                log.info("차량번호: 원본 %d쪽에서 찾음", p["i"] + 1)
+                return
 
     def _extract_3jong(self, G, C, it):
         ins_raw = ""
@@ -983,17 +1023,24 @@ class Analyzer:
                     it["agent"] = (hits[0] if len(hits) == 1 else
                                    next((h for h in hits if h in a), "") or snap_agent(pick(a), self.roster))
                 if not it["ins"]:
-                    it["ins"], how = insurer_from_text(full, self.alias, (it.get("cat") or self.cat) in ("자동차", "일반"))
+                    nl = (it.get("cat") or self.cat) in ("자동차", "일반")
+                    it["ins"], how = insurer_from_text(full, self.alias, nl)
+                    if nl and it["ins"] and it["ins"] not in self.nonlife:
+                        log.info("자동차·일반인데 생명보험사(%s)로 읽혀 버림", it["ins"])
+                        it["ins"] = ""
                     if it["ins"]:
                         log.info("보험사: %s (%s)", it["ins"], how)
                         if how == "브랜드" and self.mode == MODE_AUTO and "구분 확인" in it["warns"]:
                             it["cat"] = CAT_CAR  # 자동차보험 브랜드(애니카·하이카 등)가 보이면 자동차
                             it["warns"].remove("구분 확인")
+                            it["plate"] = it.get("plate") or plate_in_text(full)
+                if not it.get("plate") and (it.get("cat") or self.cat) == CAT_CAR:
+                    it["plate"] = plate_in_text(full)
                 if not it.get("product_hint"):
                     m = re.search(r"상\s*품\s*명\s*[:：]?\s*(.+)", full)
                     if m:
                         it["product_hint"] = short_product(m.group(1))
-                if it["contractor"] and it["agent"] and it["ins"]:
+                if it["contractor"] and it["agent"] and it["ins"] and (it.get("plate") or (it.get("cat") or self.cat) != CAT_CAR):
                     break
         if first_img is None:
             first_img = self.doc.render(pages[0]["i"], 200)
@@ -1028,7 +1075,7 @@ def item_prefix(it, mode, cat):
 
 
 def make_names(items, mode, cat):
-    """파일 이름: 접두어_보험사_취급자_계약자[_피보험자][_상품명][_구][_장수]"""
+    """파일 이름: 접두어_보험사_취급자_계약자[_피보험자][_차량번호][_상품명][_구][_장수]"""
     names, used = [], {}
     for it in items:
         pre = item_prefix(it, mode, cat)
@@ -1036,6 +1083,8 @@ def make_names(items, mode, cat):
         ins_d = (it.get("insured") or "").strip()
         if ins_d and ins_d != it.get("contractor"):
             parts.append(ins_d)
+        if pre.startswith("자동차") and (it.get("plate") or "").strip():
+            parts.append(it["plate"].strip())
         if (it.get("product") or "").strip():
             parts.append(it["product"])
         if it.get("ver") == "구" and pre in ("3종", "장기3종"):
