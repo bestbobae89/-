@@ -1217,7 +1217,7 @@ function buildDetailHtml(r){
   html += sectionHtml('마감기한', deadlineFields(r.deadline), 0);
 
   const phoneRepair = [r.repairMethod, r.repairCheck].filter(Boolean).join('\n');
-  const mobileRepair = (r.mobileRepairMethod !== undefined) ? r.mobileRepairMethod : phoneRepair;
+  const mobileRepair = r.mobileRepairMethod || '';
 
   let phoneInner = '';
   phoneInner += fieldHtml('예약경로', r.phonePath);

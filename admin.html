@@ -515,7 +515,7 @@ function renderEditor(name){
   const f_mobileAuth = fieldText('인증 가능 방법', r.mobileAuth, '전화·모바일 공통', true);
   const f_repairMethod = fieldText('보완 처리/확인 방법', r.repairMethod, null, true);
   const f_repairCheck = fieldText('보완 처리/확인 방법 - 추가', r.repairCheck, null, true);
-  const f_mobileRepair = fieldText('보완 처리/확인 방법 - 모바일', r.mobileRepairMethod, '비워두면 위 전화용과 동일하게 표시돼요', true);
+  const f_mobileRepair = fieldText('보완 처리/확인 방법 - 모바일', r.mobileRepairMethod, '전화용과 별개예요. 비워두면 모바일 쪽엔 안 보여요', true);
   wrap.appendChild(fsection('공통', [f_mobileAuth, f_repairMethod, f_repairCheck, f_mobileRepair]));
 
   const f_note = fieldText('주의사항', note['주의사항'], null, true);
