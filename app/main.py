@@ -14,6 +14,13 @@ sys.path.insert(0, HERE)
 
 APPDIR = os.path.join(os.environ.get("APPDATA") or os.path.expanduser("~"), "3종서류자동분할")
 os.makedirs(APPDIR, exist_ok=True)
+LOGFILE = os.path.join(APPDIR, "log.txt")
+try:  # 기록이 너무 커지면 예전 기록으로 돌림
+    if os.path.getsize(LOGFILE) > 5 * 1024 * 1024:
+        os.replace(LOGFILE, os.path.join(APPDIR, "log_old.txt"))
+except OSError:
+    pass
+APP_VERSION = "2026.10.27"
 logging.basicConfig(filename=os.path.join(APPDIR, "log.txt"), level=logging.INFO, encoding="utf-8",
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("main")
@@ -24,6 +31,31 @@ import pdfio  # noqa: E402
 import logos  # noqa: E402
 
 SETTINGS = os.path.join(APPDIR, "settings.json")
+
+
+def _desktop_dir():
+    """바탕화면 경로 (OneDrive 바탕화면 포함)."""
+    try:
+        import ctypes
+        from ctypes import wintypes
+        import uuid
+        fid = uuid.UUID("{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}")  # FOLDERID_Desktop
+
+        class GUID(ctypes.Structure):
+            _fields_ = [("d1", wintypes.DWORD), ("d2", wintypes.WORD), ("d3", wintypes.WORD), ("d4", ctypes.c_ubyte * 8)]
+        g = GUID(fid.fields[0], fid.fields[1], fid.fields[2], (ctypes.c_ubyte * 8)(*fid.bytes[8:]))
+        p = ctypes.c_wchar_p()
+        if ctypes.windll.shell32.SHGetKnownFolderPath(ctypes.byref(g), 0, None, ctypes.byref(p)) == 0:
+            d = p.value
+            ctypes.windll.ole32.CoTaskMemFree(p)
+            if d and os.path.isdir(d):
+                return d
+    except Exception:
+        pass
+    for d in (os.path.join(os.path.expanduser("~"), "OneDrive", "Desktop"), os.path.join(os.path.expanduser("~"), "Desktop")):
+        if os.path.isdir(d):
+            return d
+    return os.path.expanduser("~")
 
 
 def load_settings():
@@ -49,6 +81,7 @@ class Api:
     def __init__(self, first_files=None):
         self._s = load_settings()
         self._docs = []
+        self._ans = []
         self._paths = list(first_files or [])
         self._job = {"running": False, "done": 0, "total": 1, "msg": "", "finished": False, "error": ""}
         self._items, self._mode, self._cat = [], core.MODE_3, ""
@@ -85,6 +118,44 @@ class Api:
             return pdfio.Doc(path).count
         except Exception:
             return 0
+
+    def export_log(self):
+        """기록 파일을 바탕화면에 '오류기록_날짜시간.txt'로 저장."""
+        import datetime
+        try:
+            desk = _desktop_dir()
+            name = "오류기록_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
+            out = os.path.join(desk, name)
+            data = b""
+            if os.path.exists(LOGFILE):
+                with open(LOGFILE, "rb") as f:
+                    f.seek(0, 2)
+                    size = f.tell()
+                    f.seek(max(0, size - 3 * 1024 * 1024))  # 최근 3MB
+                    data = f.read()
+            head = ("PDF 분할·파일명 작성기 오류 기록\n버전: %s\n저장 시각: %s\n(고객 이름은 가려져 있습니다)\n\n"
+                    % (APP_VERSION, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))).encode("utf-8")
+            with open(out, "wb") as f:
+                f.write(head + data)
+            log.info("오류 기록 저장: %s", name)
+            return {"ok": True, "name": name, "folder": desk}
+        except Exception as e:
+            log.exception("오류 기록 저장 실패")
+            return {"ok": False, "msg": str(e)}
+
+    def reread(self, items):
+        """화면에서 순서 변경·나누기·합치기 한 건 다시 읽기."""
+        out = []
+        for it in items:
+            src = int(it.get("src", 0))
+            an = self._ans[src]
+            new = an.reread(it["pages"])
+            new["src"], new["file"] = src, it.get("file", "")
+            new["product"] = it.get("product", "")
+            new["skip"] = it.get("skip", False)
+            new["warns"] = [w for w in new["warns"] if w != "동일상품 확인"]
+            out.append(new)
+        return out
 
     def open_log(self):
         try:
@@ -170,6 +241,7 @@ class Api:
             for d in self._docs:
                 d.close()
             self._docs = []
+            self._ans = []
             items = []
             nf = len(self._paths)
             lm = self._logos() if self._mode in (core.MODE_APP, core.MODE_AUTO) else None
@@ -186,6 +258,7 @@ class Api:
                 an = core.Analyzer(doc, self._mode, self._cat, eng, progress=prog, logos=lm,
                                    roster=self._s.get("agents") or [])
                 _, its = an.run()
+                self._ans.append(an)
                 for it in its:
                     it["src"] = k
                     it["file"] = os.path.basename(path)
@@ -312,7 +385,7 @@ def _close_splash():
 
 
 def main():
-    log.info("프로그램 시작 (exe=%s)", FROZEN)
+    log.info("프로그램 시작 (exe=%s, 버전=%s)", FROZEN, APP_VERSION)
     if "--selftest" in sys.argv:
         _close_splash()
         selftest()

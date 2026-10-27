@@ -182,6 +182,11 @@ def is_g_title(t):
     return "고지의무" in t or ("고지" in t and "확인서" in t)
 
 
+def is_gr_c_title(t):
+    """굿리치 동의서('고객 계약 관리를 위한 …')인지. 보험사 자체 동의서와 구분."""
+    return "계약관리" in t or "고객계약" in t or "관리를위한" in t
+
+
 def is_c_title(t):
     return "신용" in t or ("개인" in t and ("동의" in t or "정보" in t))
 
@@ -490,9 +495,14 @@ class Analyzer:
             info = {"i": i, "kind": kind, "rot": r, "dens": round(dens, 4)}
             if kind in ("G", "C") and self.mode != MODE_APP:
                 info["kind"], info["rot"] = self._confirm_title(i, kind, r)
+                if info["kind"] == "C":
+                    info["gr"] = self._gr
             elif kind == "X" and self.mode != MODE_APP and is_gray(img):
+                self._gr = True
                 info["kind"], info["rot"] = self._title_kind(i)
                 info["bw"] = True
+                if info["kind"] == "C":
+                    info["gr"] = self._gr
             pages.append(info)
         return pages
 
@@ -511,6 +521,7 @@ class Analyzer:
                 if is_g_title(t):
                     return "G", r
                 if is_c_title(t):
+                    self._gr = is_gr_c_title(t)
                     return "C", r
                 if len(re.findall(r"[가-힣]", t)) >= 6:
                     break
@@ -545,6 +556,7 @@ class Analyzer:
             return None
 
     def _confirm_title(self, i, kind, r):
+        self._gr = True  # 제목을 못 읽으면 굿리치 동의서로 간주
         if self.eng is None:
             return kind, r
         try:
@@ -562,6 +574,7 @@ class Analyzer:
                 else:
                     ok = is_c_title(t)
                 if ok:
+                    self._gr = kind == "C" and is_gr_c_title(t)
                     return kind, rr
             if not seen:
                 return kind, r
@@ -578,12 +591,25 @@ class Analyzer:
         if self.mode == MODE_AUTO and not any(p["kind"] in ("G", "C") for p in pages):
             return [pages]  # 3종서류가 없는 파일 = 청약서 1건
         groups, cur = [], []
-        for p in pages:
+        close_at = None  # 순서가 바뀐 경우(고지의무확인서가 동의서보다 앞) 동의서까지 묶고 닫음
+        for n, p in enumerate(pages):
             if p["kind"] == "G" and not any(q["kind"] == "C" for q in cur):
-                # 동의서 없이 나온 고지의무확인서로는 나누지 않음 (청약서 중간 장 오인 방지)
-                log.info("p%d: 동의서 앞에 나온 고지의무확인서 → 나누지 않음", p["i"] + 1)
-                p["kind"], p["gx"] = "X", True
+                ahead = [k for k in range(n + 1, min(n + 3, len(pages))) if pages[k]["kind"] == "C"]
+                if ahead:
+                    close_at = ahead[0]
+                    p["swap"] = True
+                    log.info("p%d: 고지의무확인서가 동의서(p%d)보다 앞에 있음 → 동의서까지 한 건으로 묶음",
+                             p["i"] + 1, pages[close_at]["i"] + 1)
+                else:
+                    # 동의서 없이 나온 고지의무확인서로는 나누지 않음 (청약서 중간 장 오인 방지)
+                    log.info("p%d: 동의서 없이 나온 고지의무확인서 → 나누지 않음", p["i"] + 1)
+                    p["kind"], p["gx"] = "X", True
             cur.append(p)
+            if close_at is not None:
+                if n == close_at:
+                    groups.append(cur)
+                    cur, close_at = [], None
+                continue
             if p["kind"] == "G":
                 groups.append(cur)
                 cur = []
@@ -595,6 +621,24 @@ class Analyzer:
         return groups
 
     # 3) 건마다 정보 읽기
+    def reread(self, pages):
+        """확인 화면에서 순서를 바꾸거나 나누고 합친 건 다시 읽기. pages: 화면에서 정한 순서 (제외된 장 포함)."""
+        use = [dict(p, gx=False) for p in pages if not p.get("off")] or [dict(p) for p in pages]
+        try:
+            it = self.extract(use)
+        except Exception:
+            log.exception("다시 읽기 실패")
+            it = self.blank_item(use)
+            it["warns"].append("읽기 오류")
+        it["pages"] = pages
+        it["count"] = len([p for p in pages if not p.get("off")])
+        it["agent"] = snap_agent(it["agent"], self.roster)
+        log.info("다시 읽기: 원본 %s쪽 [%s] 보험사=%s 취급자=%s 계약자=%s 경고=%s",
+                 ",".join(str(p["i"] + 1) for p in pages), "".join(p["kind"][0] for p in use),
+                 it["ins"] or "(못읽음)", "읽음" if it["agent"] else "(없음)", "읽음" if it["contractor"] else "(못읽음)",
+                 ",".join(it["warns"]) or "-")
+        return it
+
     def run(self):
         pages = self.scan_pages()
         groups = self.group(pages)
@@ -622,15 +666,16 @@ class Analyzer:
                 it["warns"].append("동일상품 확인")
         for it in items:
             it["agent"] = snap_agent(it["agent"], self.roster)
-            log.info("No.%d %s장 [%s] 보험사=%s 취급자=%s 계약자=%s 피보험자=%s 경고=%s",
-                     it["no"], it["count"], "".join(p["kind"][0] for p in it["pages"]),
+            log.info("No.%d 원본 %s쪽 %s장 [%s] 보험사=%s 취급자=%s 계약자=%s 피보험자=%s 경고=%s",
+                     it["no"], ",".join(str(p["i"] + 1) for p in it["pages"][:1] + it["pages"][-1:]), it["count"],
+                     "".join(p["kind"][0] for p in it["pages"]),
                      it["ins"] or "(못읽음)", "읽음" if it["agent"] else "(없음)",
                      "읽음" if it["contractor"] else "(못읽음)", "있음" if it["insured"] else "-",
                      ",".join(it["warns"]) or "-")
         return pages, items
 
     def blank_item(self, grp):
-        return {"pages": [{"i": p["i"], "rot": p["rot"], "kind": p["kind"]} for p in grp],
+        return {"pages": [{k: p[k] for k in ("i", "rot", "kind", "gr", "gx") if k in p} for p in grp],
                 "ver": "", "ins": "", "agent": "", "contractor": "", "insured": "",
                 "product": "", "count": len(grp), "warns": []}
 
@@ -654,8 +699,7 @@ class Analyzer:
             it["warns"].append("고지의무확인서 누락")
         if C is None:
             it["warns"].append("개인정보동의서 누락")
-        if kinds.count("C") > 1:
-            it["warns"].append("2건 병합 의심")
+        self._merge_check(grp, it)
         if C is not None:
             ci = grp.index(C)
             before = [p for p in grp[:ci] if p["kind"] == "X"]
@@ -702,7 +746,46 @@ class Analyzer:
         if self.eng is None:
             return it
         self._extract_3jong(G, C, it)
+        if not it["agent"]:
+            self._agent_from_pages(grp, it)
         return it
+
+    def _merge_check(self, grp, it):
+        """2건 병합 의심 + 이유."""
+        why = []
+        cs = [(k, p) for k, p in enumerate(grp) if p["kind"] == "C" and p.get("gr", True)]
+        if len(cs) > 1:
+            why.append("이 건 안에 굿리치 개인정보동의서가 %d장 있습니다 (%s). 2건이 하나로 묶였을 수 있습니다."
+                       % (len(cs), ", ".join("%d번째 장(원본 %d쪽)" % (k + 1, p["i"] + 1) for k, p in cs)))
+        for k, p in enumerate(grp):
+            if p.get("gx"):
+                why.append("%d번째 장(원본 %d쪽)이 고지의무확인서로 보이지만 앞에 동의서가 없어 여기서 나누지 않았습니다."
+                           % (k + 1, p["i"] + 1))
+        if why:
+            it["warns"].append("2건 병합 의심")
+            it.setdefault("why", {})["2건 병합 의심"] = " ".join(why)
+            log.info("2건 병합 의심: %s", " / ".join(why))
+
+    def _agent_from_pages(self, grp, it):
+        """고지의무확인서에서 취급자를 못 찾으면 다른 장의 '담당자' 칸 등에서 찾기."""
+        if self.eng is None or it["agent"]:
+            return
+        cand = [p for p in grp if p["kind"] == "X"][:5]
+        for p in cand:
+            try:
+                words, img = self._read_page(p)
+            except Exception as e:
+                log.warning("취급자 보완 읽기 실패 p%d: %s", p["i"] + 1, e)
+                continue
+            lines = group_lines(words)
+            full = "\n".join(join_split(t) for t, _ in lines)
+            hits = [h for h in roster_in_text(full, self.roster) if h not in (it["contractor"], it["insured"])]
+            a = [x for x in agents_in_lines(lines, page_w=img.width) if x not in (it["contractor"], it["insured"])]
+            ag = hits[0] if len(hits) == 1 else (next((h for h in hits if h in a), "") or pick(a))
+            if ag:
+                it["agent"] = ag
+                log.info("취급자: 원본 %d쪽의 담당자 칸에서 찾음", p["i"] + 1)
+                return
 
     def _cat_from_text(self, t):
         t = re.sub(r"\s", "", t)
@@ -725,8 +808,7 @@ class Analyzer:
             it["warns"].append("고지의무확인서 누락")
         if C is None:
             it["warns"].append("개인정보동의서 누락")
-        if kinds.count("C") > 1 or any(p.get("gx") for p in grp):
-            it["warns"].append("2건 병합 의심")
+        self._merge_check(grp, it)
         end = grp.index(C) if C is not None else (grp.index(G) if G is not None else len(grp))
         before = [p for p in grp[:end] if p["kind"] == "X"]
         near = before[::-1]
@@ -768,6 +850,8 @@ class Analyzer:
         if self.eng is None:
             return it
         self._extract_3jong(G, C, it)
+        if not it["agent"]:
+            self._agent_from_pages(grp, it)
         return it
 
     def _extract_3jong(self, G, C, it):
