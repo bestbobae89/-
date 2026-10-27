@@ -20,7 +20,8 @@ try:  # 기록이 너무 커지면 예전 기록으로 돌림
         os.replace(LOGFILE, os.path.join(APPDIR, "log_old.txt"))
 except OSError:
     pass
-APP_VERSION = "2026.10.27"
+APP_VERSION = "v1.4"
+APP_DATE = "2026.10.27"
 logging.basicConfig(filename=os.path.join(APPDIR, "log.txt"), level=logging.INFO, encoding="utf-8",
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("main")
@@ -92,7 +93,7 @@ class Api:
     # ---------- 시작 화면
     def init(self):
         canon, _ = core.load_insurers()
-        return {"out_dir": self._s.get("out_dir") or "", "first_files": self._paths,
+        return {"version": APP_VERSION + " · " + APP_DATE, "out_dir": self._s.get("out_dir") or "", "first_files": self._paths,
                 "insurers": canon, "mode": self._s.get("mode") or "", "cat": self._s.get("cat") or "",
                 "pv_width": self._s.get("pv_width") or "", "zoom": self._s.get("zoom") or "w",
                 "agents": self._s.get("agents") or []}
@@ -133,8 +134,8 @@ class Api:
                     size = f.tell()
                     f.seek(max(0, size - 3 * 1024 * 1024))  # 최근 3MB
                     data = f.read()
-            head = ("PDF 분할·파일명 작성기 오류 기록\n버전: %s\n저장 시각: %s\n(고객 이름은 가려져 있습니다)\n\n"
-                    % (APP_VERSION, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))).encode("utf-8")
+            head = ("PDF 분할·파일명 작성기 오류 기록\n버전: %s (%s)\n저장 시각: %s\n(고객 이름은 가려져 있습니다)\n\n"
+                    % (APP_VERSION, APP_DATE, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))).encode("utf-8")
             with open(out, "wb") as f:
                 f.write(head + data)
             log.info("오류 기록 저장: %s", name)

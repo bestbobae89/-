@@ -8,7 +8,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 .screen{display:none;height:100vh;flex-direction:column}.screen.on{display:flex}
 .bar{background:var(--hd);color:#fff;height:44px;display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0}
-.bar b{font-size:14.5px}.bar .ctx{color:#b8c3d6;font-size:12px}.bar .r{margin-left:auto;display:flex;gap:6px}
+.bar b{font-size:14.5px}.appver{color:#8f9bb3;font-size:11.5px;margin-left:-6px}.bar .ctx{color:#b8c3d6;font-size:12px}.bar .r{margin-left:auto;display:flex;gap:6px}
 .lnk{color:#e1e7f2;font-size:12px;border:1px solid #475673;padding:5px 12px;border-radius:3px;background:transparent;cursor:pointer}
 .lnk:hover{background:#2a3858}
 .main{flex:1;min-height:0;padding:14px 18px;display:flex;flex-direction:column;gap:12px;overflow:auto}
@@ -104,7 +104,7 @@ textarea.inp{width:100%;height:70px;resize:vertical}
 <body>
 
 <section class="screen on" id="start">
- <div class="bar"><b>PDF 분할·파일명 작성기</b><div class="r"><button class="lnk" data-act="exportlog">오류 기록 저장</button><button class="lnk" data-act="roster">명단 관리</button></div></div>
+ <div class="bar"><b>PDF 분할·파일명 작성기</b><span class="appver"></span><div class="r"><button class="lnk" data-act="exportlog">오류 기록 저장</button><button class="lnk" data-act="roster">명단 관리</button></div></div>
  <div class="main">
   <div class="panel"><div class="pb path"><div class="lab">저장 경로</div><div class="v" id="outDir"></div><button class="btn" id="chooseOut">변경</button><button class="btn" id="openOut">폴더 열기</button></div></div>
   <div class="panel"><div class="ph">작업 설정</div><div class="setw"><div class="l">
@@ -125,12 +125,12 @@ textarea.inp{width:100%;height:70px;resize:vertical}
 </section>
 
 <section class="screen" id="work">
- <div class="bar"><b>PDF 분할·파일명 작성기</b><span class="ctx" id="workCtx"></span></div>
+ <div class="bar"><b>PDF 분할·파일명 작성기</b><span class="appver"></span><span class="ctx" id="workCtx"></span></div>
  <div class="main"><div class="center"><div style="font-size:15px;font-weight:700">문서 분석 중…</div><div class="pbar"><i id="pbar"></i></div><div class="hint" id="workMsg"></div></div></div>
 </section>
 
 <section class="screen" id="review">
- <div class="bar"><b>PDF 분할·파일명 작성기</b><span class="ctx" id="rvCtx"></span><div class="r"><button class="lnk" data-act="exportlog">오류 기록 저장</button><button class="lnk" data-act="roster">명단 관리</button></div></div>
+ <div class="bar"><b>PDF 분할·파일명 작성기</b><span class="appver"></span><span class="ctx" id="rvCtx"></span><div class="r"><button class="lnk" data-act="exportlog">오류 기록 저장</button><button class="lnk" data-act="roster">명단 관리</button></div></div>
  <div class="main" style="gap:10px;overflow:hidden">
   <div style="display:flex;align-items:center;gap:10px;min-height:34px"><div class="cnt" id="cnt"></div>
    <div style="margin-left:auto;display:flex;gap:8px;align-items:center" id="navW"><span class="wbadge" id="wBadge"></span><button class="btn" id="prevW">◀ 이전 건</button><span class="navpos" id="navPos"></span><button class="btn" id="nextW">다음 건 ▶</button></div>
@@ -151,7 +151,7 @@ textarea.inp{width:100%;height:70px;resize:vertical}
 </section>
 
 <section class="screen" id="done">
- <div class="bar"><b>PDF 분할·파일명 작성기</b></div>
+ <div class="bar"><b>PDF 분할·파일명 작성기</b><span class="appver"></span></div>
  <div class="main"><div class="center">
   <div style="font-size:17px;font-weight:700" id="doneTitle"></div><div class="hint" id="doneDir"></div>
   <div class="panel" style="width:640px;max-width:92%;max-height:300px;overflow:auto;padding:10px 14px;line-height:1.8;font-size:12.5px;color:#475467" id="doneFiles"></div>
@@ -461,6 +461,7 @@ document.querySelectorAll('[data-act=exportlog]').forEach(b=>b.onclick=exportLog
 document.querySelectorAll('[data-act=roster]').forEach(b=>b.onclick=()=>{$('#rSearch').value='';renderRoster();$('#rosterM').classList.add('on');setTimeout(()=>$('#rBulk').focus(),30)});
 
 async function boot(){api=window.pywebview.api;const r=await api.init();
+ document.querySelectorAll('.appver').forEach(e=>e.textContent=r.version||'');
  S.outDir=r.out_dir;S.insurers=r.insurers;S.agents=r.agents||[];S.zoom=ZL.includes(r.zoom)?r.zoom:'w';
  if(r.pv_width)document.documentElement.style.setProperty('--pvw',r.pv_width);renderStart();
  if(r.first_files&&r.first_files.length)window.onPicked(r.first_files)}
