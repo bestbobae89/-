@@ -769,8 +769,8 @@ class Analyzer:
         self._extract_3jong(G, C, it)
         if not it["agent"]:
             self._agent_from_pages(grp, it)
-        if self.cat == CAT_CAR and self.mode == MODE_MIX:
-            self._plate_from_pages(grp, it, exclude=b_near[:1])
+        if self.mode == MODE_MIX:
+            self._app_info_for_mix(grp, it, exclude=b_near[:(2 if self.is_long else 1)], car=self.cat == CAT_CAR)
         return it
 
     def _merge_check(self, grp, it):
@@ -875,9 +875,53 @@ class Analyzer:
         self._extract_3jong(G, C, it)
         if not it["agent"]:
             self._agent_from_pages(grp, it)
-        if cat == CAT_CAR and it["mode"] == MODE_MIX:
-            self._plate_from_pages(grp, it, exclude=near[:nb])
+        if it["mode"] == MODE_MIX:
+            self._app_info_for_mix(grp, it, exclude=near[:nb], car=cat == CAT_CAR)
         return it
+
+    def _app_info_for_mix(self, grp, it, exclude=(), car=False):
+        """청약서+3종: 청약서 앞 장에서 계약자·피보험자(·차량번호)를 읽고, 고지의무확인서 값과 비교."""
+        if self.eng is None:
+            return
+        ex = {p["i"] for p in exclude}
+        pages = [q for q in grp if q["kind"] == "X" and q["i"] not in ex][:2]
+        app_c, app_i, plate = "", "", ""
+        for p in pages:
+            try:
+                words, img = self._read_page(p)
+            except Exception as e:
+                log.warning("청약서 읽기 실패 p%d: %s", p["i"] + 1, e)
+                continue
+            lines = group_lines(words)
+            full = "\n".join(join_split(t) for t, _ in lines)
+            W = img.width
+            if not app_c:
+                c = [m.group(1) for m in re.finditer(r"([가-힣]{2,4})\s*님\s*을\s*위\s*한", full) if is_name(m.group(1))]
+                c += names_next_to(lines, r"계\s*약\s*자", exclude_pat=r"(피\s*보\s*[험혐]|대\s*리|전)", page_w=W)
+                app_c = pick(c)
+            if not app_i:
+                app_i = pick(names_next_to(lines, r"피\s*보\s*[험혐]\s*자", page_w=W))
+            if car and not plate:
+                plate = plate_in_text(full)
+            if app_c and (app_i or not car) and (plate or not car):
+                break
+        g_c = it["contractor"]
+        if app_c:
+            if g_c and valid_name(g_c) and g_c != app_c:
+                it["warns"].append("계약자 확인")
+                it.setdefault("why", {})["계약자 확인"] = (
+                    "청약서의 계약자는 '%s', 고지의무확인서의 계약자는 '%s'로 읽혔습니다. 청약서 값을 넣었으니 원본을 보고 맞는지 확인하십시오."
+                    % (app_c, g_c))
+                log.info("계약자 불일치: 청약서와 고지의무확인서가 다름")
+            it["contractor"] = app_c
+            log.info("계약자: 청약서에서 읽음")
+        if app_i and app_i != it["contractor"]:
+            it["insured"] = app_i
+            if "피보험자 칸 확인" in it["warns"]:
+                it["warns"].remove("피보험자 칸 확인")
+            log.info("피보험자: 청약서에서 읽음")
+        if plate:
+            it["plate"] = plate
 
     def _plate_from_pages(self, grp, it, exclude=()):
         """자동차 청약서 장에서 차량번호 찾기 (앞에서부터 최대 3장)."""
@@ -983,6 +1027,16 @@ class Analyzer:
         return None
 
     def _read_page(self, p):
+        cache = self.__dict__.setdefault("_rp_cache", {})
+        if p["i"] in cache:
+            return cache[p["i"]]
+        r = self._read_page_raw(p)
+        if len(cache) >= 4:
+            cache.pop(next(iter(cache)))
+        cache[p["i"]] = r
+        return r
+
+    def _read_page_raw(self, p):
         img = self.doc.render(p["i"], 200)
         words = self.eng.words(img)
         if kw_score_words(words) < 4:  # 거꾸로 스캔된 장은 돌려서 읽기만 함 (파일은 그대로)

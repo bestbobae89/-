@@ -20,7 +20,7 @@ try:  # 기록이 너무 커지면 예전 기록으로 돌림
         os.replace(LOGFILE, os.path.join(APPDIR, "log_old.txt"))
 except OSError:
     pass
-APP_VERSION = "v1.4"
+APP_VERSION = "v1.5"
 APP_DATE = "2026.10.27"
 logging.basicConfig(filename=os.path.join(APPDIR, "log.txt"), level=logging.INFO, encoding="utf-8",
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -286,6 +286,17 @@ class Api:
         return {"items": self._items, "names": self.names(self._items), 
                 "mode": self._mode, "cat": self._cat, "files": [os.path.basename(p) for p in self._paths],
                 "ocr": (self._engine.name if self._engine else ""), "ocr_note": self._engine_note}
+
+    def exists(self, names):
+        """저장 폴더에 같은 이름의 파일이 이미 있는지 (중복 저장 방지용)."""
+        out = self._s.get("out_dir") or ""
+        if not out or not os.path.isdir(out):
+            return [False] * len(names or [])
+        try:
+            have = {f.lower() for f in os.listdir(out)}
+        except OSError:
+            return [False] * len(names or [])
+        return [bool(n) and n.lower() in have for n in (names or [])]
 
     def names(self, items):
         """뺀 건은 겹침 계산에서 제외하고, 줄마다 저장될 이름을 돌려줌."""

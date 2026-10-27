@@ -144,6 +144,7 @@ textarea.inp{width:100%;height:70px;resize:vertical}
     <div class="thumbs" id="thumbs"></div>
     <div class="pvc"><button class="btn s" id="pgPrev">◀</button><span id="pgPos" style="min-width:60px;text-align:center"></span><button class="btn s" id="pgNext">▶</button>
      <span style="width:8px"></span><button class="btn s" id="goTop">맨 위</button><button class="btn s" id="goBot">맨 아래</button>
+     <span style="width:8px"></span><button class="btn s" id="mvL" title="이 장을 한 칸 앞으로">◀ 앞으로</button><button class="btn s" id="mvR" title="이 장을 한 칸 뒤로">뒤로 ▶</button><button class="btn s" id="mvPrev" title="이 장을 앞 건의 맨 끝으로 보냅니다">앞 건으로</button><button class="btn s" id="mvNext" title="이 장을 뒤 건의 맨 앞으로 보냅니다">뒤 건으로</button>
      <span style="margin-left:auto"></span><button class="btn zb" id="zOut" title="축소">−</button><span class="zl" id="zLabel"></span><button class="btn zb" id="zIn" title="확대">+</button></div>
    </div></div>
  </div>
@@ -233,11 +234,13 @@ async function poll(){
  if(j.error){await errorModal('처리 오류','문서 처리 중 오류가 발생했습니다.\n'+j.error);show('start');return}
  const r=await api.result();S.items=r.items;S.names=r.names;S.srcFiles=r.files||[];S.ocr=r.ocr;S.ocrNote=r.ocr_note;
  S.items.forEach(it=>{it.warns=(it.warns||[]).filter(w=>w!=='동일상품 확인');it.product=''});
- UNDO.length=0;S.sel=firstWarn();S.pg=defaultPage(S.items[S.sel]);S.pvTarget='top';renderReview();show('review')}
+ UNDO.length=0;S.exist=await api.exists(S.names);S.sel=firstWarn();S.pg=defaultPage(S.items[S.sel]);S.pvTarget='top';renderReview();show('review')}
 
 const TIPS={
  '새로고침 필요':'페이지를 삭제하거나 순서를 바꾸거나 합쳤습니다. 다 고친 뒤 미리보기 위 [새로고침]을 누르면 이름·보험사·취급자를 다시 읽습니다.',
  '차량번호 미인식':'차량번호를 찾지 못했습니다. 신차이거나 번호가 없는 경우 비워 두어도 됩니다. 있으면 직접 입력하십시오.',
+ '이미 저장됨':'저장 폴더에 같은 이름의 파일이 이미 있습니다. 같은 서류를 두 번 처리한 것인지 확인하십시오. 다른 건이 맞으면 [확인]을 누르십시오. 저장하면 파일명 끝에 (2)가 붙습니다.',
+ '계약자 확인':'청약서와 고지의무확인서의 계약자 이름이 다르게 읽혔습니다. 원본을 보고 맞는 이름으로 고치십시오.',
  '구분 확인':'서류 종류나 상품 구분(장기·자동차·일반)을 확실히 판별하지 못했습니다. [구분] 칸을 확인하고 다르면 변경하십시오.',
  '구버전 적용':'비교설명서가 1장이라 구버전으로 판별했습니다. 파일명 끝에 _구가 붙습니다. 맞으면 [확인]을 누르십시오. 다르면 버전 칸에서 변경하십시오.',
  '버전 판별 불가':'페이지 수로 신/구버전을 판별할 수 없습니다. 원본을 보고 버전 칸에서 선택하십시오.',
@@ -268,7 +271,8 @@ function warnsOf(it){if(it.skip)return[];if(it.dirty)return['새로고침 필요
  if(verNeeded(it)&&!it.ver&&!w.includes('버전 판별 불가'))w.push('버전 판별 불가');
  if(!verNeeded(it)){const k=w.indexOf('버전 판별 불가');if(k>=0)w.splice(k,1);const g=w.indexOf('구버전 적용');if(g>=0&&!verNeeded(it))w.splice(g,1)}
  if(it.ver&&w.includes('버전 판별 불가')&&it.verSet)w.splice(w.indexOf('버전 판별 불가'),1);
- if(it.contractor&&it.ins&&(DUP[dupKey(it)]||0)>1)w.push('동일상품 확인');return w}
+ if(it.contractor&&it.ins&&(DUP[dupKey(it)]||0)>1)w.push('동일상품 확인');
+ if(S.exist&&S.exist[S.items.indexOf(it)])w.unshift('이미 저장됨');return w}
 function firstWarn(){DUP=dupSet();const i=S.items.findIndex(it=>warnsOf(it).length);return i<0?0:i}
 function hasCar(){return S.items.some(it=>prefixOf(it).startsWith('자동차'))}
 function cols(){const c=[['skip',''],['no','No'],['kind','구분'],['ins','보험사'],['agent','취급자'],['contractor','계약자'],['insured','피보험자']];
@@ -318,6 +322,30 @@ async function ackItem(idx,tr,it){const w=warnsOf(it);
  it.ack=true;refreshRow(tr,it);updateSummary()}
 function renumber(){S.items.forEach((x,i)=>x.no=i+1)}
 function structChanged(){renumber();$('#thumbs').dataset.for='';renderReview();scheduleNames()}
+// 작은 그림 마우스로 끌어서 순서 바꾸기 (브라우저 끌어놓기 대신 마우스 이동으로 직접 처리)
+let DR=null;
+function thumbDown(e,k){if(e.button!==0)return;e.preventDefault();DR={k,x:e.clientX,y:e.clientY,on:false,ghost:null,src:e.target}}
+document.addEventListener('mousemove',e=>{if(!DR)return;
+ if(!DR.on){if(Math.abs(e.clientX-DR.x)+Math.abs(e.clientY-DR.y)<6)return;DR.on=true;
+  const g=DR.src.cloneNode();g.style.cssText='position:fixed;z-index:40;height:60px;opacity:.85;pointer-events:none;box-shadow:0 3px 10px rgba(0,0,0,.3)';document.body.appendChild(g);DR.ghost=g;DR.src.classList.add('drag')}
+ DR.ghost.style.left=(e.clientX-20)+'px';DR.ghost.style.top=(e.clientY-30)+'px';
+ const t=document.elementFromPoint(e.clientX,e.clientY);[...$('#thumbs').children].forEach(c=>c.classList.toggle('dropto',c===t&&c!==DR.src))});
+document.addEventListener('mouseup',e=>{if(!DR)return;const d=DR;DR=null;if(!d.on)return;
+ d.ghost.remove();d.src.classList.remove('drag');[...$('#thumbs').children].forEach(c=>c.classList.remove('dropto'));S.justDragged=true;setTimeout(()=>S.justDragged=false,50);
+ const t=document.elementFromPoint(e.clientX,e.clientY);if(!t||t.parentElement!==$('#thumbs')||t.dataset.k===undefined)return;
+ const to=+t.dataset.k;if(to===d.k)return;movePage(d.k,to)});
+function movePage(from,to){snap();const it=S.items[S.sel];const [m]=it.pages.splice(from,1);it.pages.splice(to,0,m);it.dirty=true;it.ack=false;S.pg=to;
+ $('#thumbs').dataset.for='';refreshAll();renderPreview()}
+$('#mvL').onclick=()=>{if(S.pg>0)movePage(S.pg,S.pg-1)};
+$('#mvR').onclick=()=>{const it=S.items[S.sel];if(S.pg<it.pages.length-1)movePage(S.pg,S.pg+1)};
+async function sendPage(dir){const it=S.items[S.sel];const j=S.sel+dir,other=S.items[j];
+ if(!other){await modal('페이지 이동',dir<0?'앞 건이 없습니다.':'뒤 건이 없습니다.',[['확인',1,true]]);return}
+ if((other.src||0)!==(it.src||0)){await modal('페이지 이동','다른 파일의 건으로는 옮길 수 없습니다.',[['확인',1,true]]);return}
+ snap();const [m]=it.pages.splice(S.pg,1);if(dir<0)other.pages.push(m);else other.pages.unshift(m);
+ [it,other].forEach(x=>{x.dirty=true;x.ack=false;x.count=activePages(x).length});
+ if(!it.pages.length){S.items.splice(S.sel,1);S.sel=Math.max(0,dir<0?S.sel-1:S.sel);S.pg=0}else S.pg=Math.min(S.pg,it.pages.length-1);
+ structChanged()}
+$('#mvPrev').onclick=()=>sendPage(-1);$('#mvNext').onclick=()=>sendPage(1);
 const UNDO=[];
 function snap(){UNDO.push({items:JSON.parse(JSON.stringify(S.items)),sel:S.sel,pg:S.pg});if(UNDO.length>30)UNDO.shift();updUndo()}
 function updUndo(){$('#undoBtn').disabled=!UNDO.length}
@@ -336,7 +364,7 @@ async function doReread(list){const d=list||[S.items[S.sel]];if(!d.length||!d[0]
   d.forEach((x,k)=>{const i=S.items.indexOf(x);const n=r[k];n.no=x.no;S.items[i]=n});
   S.names=await api.names(S.items)}
  catch(e){$('#modal').classList.remove('on');await errorModal('새로고침 오류',String(e));return}
- $('#modal').classList.remove('on');$('#thumbs').dataset.for='';renderReview()}
+ $('#modal').classList.remove('on');$('#thumbs').dataset.for='';S.exist=await api.exists(S.names);renderReview()}
 $('#rereadBtn').onclick=()=>doReread();
 function refreshAll(){DUP=dupSet();document.querySelectorAll('#tbody tr').forEach(tr=>refreshRow(tr,S.items[+tr.dataset.idx]));updateSummary();scheduleNames()}
 function refreshRow(tr,it){const idx=+tr.dataset.idx,w=warnsOf(it);
@@ -364,7 +392,9 @@ function updateSummary(){const n=S.items.length,sk=S.items.filter(it=>it.skip).l
  $('#wBadge').textContent=`⚠ 확인 필요 ${wn}건`;$('#navPos').textContent=`${pos>=0?pos+1:'-'} / ${wn}`;
  $('#saveBtn').textContent=`${n-sk}개 저장`;$('#saveBtn').disabled=!(n-sk)}
 let nameTimer=null;
-function scheduleNames(){clearTimeout(nameTimer);nameTimer=setTimeout(async()=>{S.names=await api.names(S.items);
+async function updExist(){try{S.exist=await api.exists(S.names)}catch(e){S.exist=[]}
+ document.querySelectorAll('#tbody tr').forEach(tr=>refreshRow(tr,S.items[+tr.dataset.idx]));updateSummary()}
+function scheduleNames(){clearTimeout(nameTimer);nameTimer=setTimeout(async()=>{S.names=await api.names(S.items);updExist();
  document.querySelectorAll('#tbody tr').forEach(tr=>{const i=+tr.dataset.idx,fn=tr.querySelector('.fn');fn.textContent=S.names[i];fn.title=S.names[i]})},250)}
 function defaultPage(it){if(!it)return 0;const g=it.pages.findIndex(p=>p.kind==='G');return g>=0?g:0}
 function select(idx,scroll,keepTarget){if(idx<0||idx>=S.items.length)return;
@@ -383,15 +413,8 @@ async function renderPreview(){const it=S.items[S.sel];if(!it)return;const tok=+
  $('#zLabel').textContent=ZN[S.zoom]||'너비 맞춤';
  const th=$('#thumbs');
  if(th.dataset.for!==String(S.sel)){th.dataset.for=S.sel;th.innerHTML='';
-  it.pages.forEach((p,k)=>{const im=document.createElement('img');im.onclick=()=>{S.pg=k;renderPreview()};th.appendChild(im);
-   im.draggable=true;im.dataset.k=k;
-   im.addEventListener('dragstart',e=>{S.dragK=k;im.classList.add('drag');e.dataTransfer.effectAllowed='move'});
-   im.addEventListener('dragend',()=>{im.classList.remove('drag');[...th.children].forEach(c=>c.classList.remove('dropto'))});
-   im.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();im.classList.add('dropto')});
-   im.addEventListener('dragleave',()=>im.classList.remove('dropto'));
-   im.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();const from=S.dragK,to=k;S.dragK=null;if(from==null||from===to)return;
-    snap();const cur=S.items[S.sel];const [m]=cur.pages.splice(from,1);cur.pages.splice(to,0,m);cur.dirty=true;cur.ack=false;S.pg=to;
-    th.dataset.for='';refreshAll();renderPreview()});
+  it.pages.forEach((p,k)=>{const im=document.createElement('img');im.onclick=()=>{if(S.justDragged){S.justDragged=false;return}S.pg=k;renderPreview()};th.appendChild(im);
+   im.draggable=false;im.dataset.k=k;im.addEventListener('mousedown',e=>thumbDown(e,k));
    pageImg(it.src||0,p,140).then(src=>{if(th.dataset.for===String(S.sel))im.src=src})})}
  [...th.children].forEach((im,k)=>{im.classList.toggle('on',k===S.pg);im.classList.toggle('off',!!it.pages[k].off);im.title=(it.pages[k].off?'제외된 페이지 · ':'')+'끌어서 순서 변경'});
  const off=!!it.pages[S.pg].off;$('#pgOff').textContent=off?'삭제 취소':'페이지 삭제';$('#offMark').style.display=off?'':'none';
