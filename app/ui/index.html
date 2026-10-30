@@ -156,7 +156,8 @@ textarea.inp{width:100%;height:70px;resize:vertical}
  <div class="main"><div class="center">
   <div style="font-size:17px;font-weight:700" id="doneTitle"></div><div class="hint" id="doneDir"></div>
   <div class="panel" style="width:640px;max-width:92%;max-height:300px;overflow:auto;padding:10px 14px;line-height:1.8;font-size:12.5px;color:#475467" id="doneFiles"></div>
-  <div style="display:flex;gap:6px"><button class="btn p" id="openDir">폴더 열기</button><button class="btn" id="again">처음 화면</button></div>
+  <div class="hint err" id="doneNote" style="display:none"></div>
+  <div style="display:flex;gap:6px"><button class="btn p" id="openDir">폴더 열기</button><button class="btn" id="openList">작업 목록 열기</button><button class="btn" id="again">처음 화면</button></div>
  </div></div>
 </section>
 
@@ -246,7 +247,7 @@ const TIPS={
  '버전 판별 불가':'페이지 수로 신/구버전을 판별할 수 없습니다. 원본을 보고 버전 칸에서 선택하십시오.',
  '상품구분 불일치(확인필요)':'선택한 상품 구분과 이 건의 비교설명서 양식이 다릅니다. 맞으면 [확인]을 누르고, 아니면 [−]로 제외한 뒤 해당 상품 구분으로 따로 작업하십시오.',
  '상품명 입력 필요':'같은 고객·같은 보험사의 다른 상품이 있어 파일명이 겹칩니다. [상품명] 칸에 상품명을 입력하면 파일명에 추가됩니다. 입력하지 않으면 (2)가 붙습니다.',
- '중복등록':'같은 서류가 두 번 들어왔습니다 (계약자·보험사·장수·서류 구성이 같음). 중복이라 저장 대상에서 제외했습니다. 다른 서류가 맞으면 [+]를 눌러 다시 포함하십시오.',
+ '중복등록':'같은 서류가 두 번 들어왔습니다 (모든 장의 내용이 같음). 중복이라 저장 대상에서 제외했습니다. 다른 서류가 맞으면 [+]를 눌러 다시 포함하십시오.',
  '2건 병합 의심':'한 건에 개인정보동의서가 여러 장이거나 페이지가 너무 많습니다. 2건이 하나로 묶였을 수 있으니 원본을 확인하십시오.',
  '빈 페이지 포함':'내용이 거의 없는 페이지가 포함되어 있습니다. 미리보기에서 확인하고, 빼야 하면 [페이지 삭제]를 누르십시오.',
  '모든 페이지 제외':'이 건의 페이지가 모두 제외되어 저장되지 않습니다.',
@@ -264,9 +265,12 @@ const TIPS={
 function markDups(){const g={};
  S.items.forEach(it=>{if(!it.contractor||!it.ins)return;const k=[it.contractor,it.insured||'',it.ins].join('|');(g[k]=g[k]||[]).push(it)});
  Object.values(g).forEach(list=>{if(list.length<2)return;const seen={};const distinct=[];
-  list.forEach(it=>{const sig=it.count+'|'+it.pages.map(p=>p.kind[0]).join('');
-   if(seen[sig]){it.dupOf=seen[sig].no;it.skip=true}else{seen[sig]=it;distinct.push(it)}});
+  list.forEach(it=>{const d=distinct.find(o=>samePages(o,it));
+   if(d){it.dupOf=d.no;it.skip=true}else distinct.push(it)});
   if(distinct.length>1)distinct.forEach(it=>{if(!it.product&&it.product_hint)it.product=it.product_hint})})}
+// 같은 스캔인지: 장수가 같고 모든 장의 그림 지문이 거의 같을 때만 (종합/실손처럼 양식만 같은 다른 서류는 중복 아님)
+function hamming(a,b){if(!a||!b||a.length!==b.length)return 999;let n=0;for(let i=0;i<a.length;i++){let x=parseInt(a[i],16)^parseInt(b[i],16);while(x){n+=x&1;x>>=1}}return n}
+function samePages(a,b){if(a.pages.length!==b.pages.length)return false;return a.pages.every((p,k)=>p.fp&&p.fp===b.pages[k].fp)}
 function dupKey(it){return [it.contractor,it.insured,it.ins,(it.product||'').trim()].join('|')}
 function dupSet(){const c={};S.items.forEach(it=>{if(it.skip||!it.contractor||!it.ins)return;const k=dupKey(it);c[k]=(c[k]||0)+1});return c}
 let DUP={};
@@ -467,7 +471,10 @@ $('#saveBtn').onclick=async()=>{
  if(!r.ok&&!(r.saved&&r.saved.length)){await errorModal('저장 오류',(r.msg||'파일을 저장하지 못했습니다.')+'\n'+(r.errors||[]).join('\n'));return}
  $('#doneTitle').textContent=r.errors.length?`${r.saved.length}개 저장 완료, ${r.errors.length}개 실패`:`${r.saved.length}개 파일이 저장되었습니다.`;
  $('#doneDir').textContent=r.folder;const list=[...r.errors.map(e=>'실패: '+e),...r.saved];
- $('#doneFiles').innerHTML=list.map(esc).join('<br>');show('done')};
+ $('#doneFiles').innerHTML=list.map(esc).join('<br>');
+ const dn=$('#doneNote');dn.textContent=r.worklist||'';dn.style.display=r.worklist?'':'none';
+ $('#doneDir').textContent=r.folder+(r.worklist?'':'  ·  작업 목록: '+base(r.worklist_path||''));show('done')};
+$('#openList').onclick=async()=>{if(!(await api.open_worklist()))await modal('작업 목록','작업 목록 파일이 아직 없습니다.',[['확인',1,true]])};
 $('#openDir').onclick=()=>api.open_folder();$('#again').onclick=()=>reset();
 function clearPreview(){S.items=[];for(const k in imgCache)delete imgCache[k];$('#thumbs').dataset.for=''}
 function back(){clearPreview();renderStart();show('start')}

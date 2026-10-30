@@ -20,8 +20,8 @@ try:  # 기록이 너무 커지면 예전 기록으로 돌림
         os.replace(LOGFILE, os.path.join(APPDIR, "log_old.txt"))
 except OSError:
     pass
-APP_VERSION = "v1.5"
-APP_DATE = "2026.10.27"
+APP_VERSION = "v1.6"
+APP_DATE = "2026.10.28"
 logging.basicConfig(filename=os.path.join(APPDIR, "log.txt"), level=logging.INFO, encoding="utf-8",
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("main")
@@ -322,18 +322,78 @@ class Api:
         os.makedirs(out, exist_ok=True)
         items = [it for it in items if not it.get("skip") and any(not pg.get("off") for pg in it["pages"])]
         names = core.make_names(items, self._mode, self._cat)
-        saved, errors = [], []
+        saved, errors, saved_items = [], [], []
         for it, nm in zip(items, names):
             try:
                 p = core.unique_path(out, nm)
                 pdfio.save_pages(self._paths[it.get("src", 0)], [(pg["i"], 0) for pg in it["pages"] if not pg.get("off")], p)
                 saved.append(os.path.basename(p))
+                saved_items.append(it)
             except PermissionError:
                 errors.append(f"{nm}: 같은 이름의 파일이 다른 프로그램에서 열려 있습니다")
             except Exception as e:
                 log.exception("저장 실패")
                 errors.append(f"{nm}: {e}")
-        return {"ok": not errors, "saved": saved, "errors": errors, "folder": out}
+        log_note = ""
+        if saved_items:
+            log_note = self._append_worklist(out, saved_items)
+        return {"ok": not errors, "saved": saved, "errors": errors, "folder": out, "worklist": log_note,
+                "worklist_path": self._worklist_path(out)}
+
+    def _worklist_path(self, out):
+        import datetime
+        return os.path.join(out, "작업목록_" + datetime.date.today().strftime("%Y-%m") + ".xlsx")
+
+    def _append_worklist(self, out, items):
+        """월별 작업 목록(엑셀)에 저장한 건을 한 줄씩 추가. 실패해도 PDF 저장에는 영향 없음."""
+        import datetime
+        try:
+            from openpyxl import Workbook, load_workbook
+            from openpyxl.styles import Font, PatternFill, Alignment
+        except Exception:
+            log.exception("엑셀 부품 없음")
+            return "엑셀 기능을 사용할 수 없어 작업 목록을 기록하지 못했습니다."
+        path = self._worklist_path(out)
+        head = ["저장일자", "구분", "보험사", "취급자", "계약자", "피보험자", "차량번호", "상품명"]
+        widths = [12, 11, 11, 10, 10, 10, 12, 24]
+        try:
+            if os.path.exists(path):
+                wb = load_workbook(path)
+                ws = wb.active
+            else:
+                wb = Workbook()
+                ws = wb.active
+                ws.title = "작업목록"
+                ws.append(head)
+                for c in ws[1]:
+                    c.font = Font(bold=True, color="FFFFFF")
+                    c.fill = PatternFill("solid", fgColor="1F2A44")
+                    c.alignment = Alignment(horizontal="center")
+                for k, w in enumerate(widths):
+                    ws.column_dimensions[chr(65 + k)].width = w
+                ws.freeze_panes = "A2"
+            today = datetime.date.today().strftime("%Y-%m-%d")
+            for it in items:
+                pre = core.item_prefix(it, self._mode, self._cat)
+                ws.append([today, pre, it.get("ins") or "", it.get("agent") or "", it.get("contractor") or "",
+                           it.get("insured") or "", (it.get("plate") or "") if pre.startswith("자동차") else "",
+                           it.get("product") or ""])
+            ws.auto_filter.ref = "A1:H%d" % ws.max_row
+            wb.save(path)
+            log.info("작업 목록 %d건 추가: %s", len(items), os.path.basename(path))
+            return ""
+        except PermissionError:
+            return "작업 목록 파일(%s)이 열려 있어 기록하지 못했습니다. 엑셀을 닫은 뒤 다시 저장하십시오." % os.path.basename(path)
+        except Exception as e:
+            log.exception("작업 목록 기록 실패")
+            return "작업 목록을 기록하지 못했습니다: %s" % e
+
+    def open_worklist(self):
+        p = self._worklist_path(self._s.get("out_dir") or "")
+        if os.path.exists(p):
+            os.startfile(p)  # noqa (윈도우 전용)
+            return True
+        return False
 
     def open_folder(self):
         d = self._s.get("out_dir")

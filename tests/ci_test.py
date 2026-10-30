@@ -12,7 +12,7 @@ def check(name, fn):
         print(f"[FAIL] {name}")
         traceback.print_exc(file=sys.stdout)
 
-for m in ["webview", "fitz", "pypdf", "numpy", "PIL",
+for m in ["webview", "fitz", "pypdf", "numpy", "PIL", "openpyxl",
           "winrt.windows.media.ocr", "winrt.windows.globalization",
           "winrt.windows.graphics.imaging", "winrt.windows.storage.streams", "winrt.windows.storage"]:
     check("import " + m, lambda m=m: __import__(m) and "ok")

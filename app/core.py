@@ -132,8 +132,11 @@ def short_product(s):
                                           r"동양|미래에셋|처브|농협|AIA|ABL|MG|KDB|iM|IBK|let|Good|굿)", t, re.I)
             or len(toks) == 1]
     out = "".join(toks[-2:]) if toks else ""
+    for kw in ("실손", "태아"):  # 종합/실손·태아 구분 단어는 꼭 남김
+        if kw in s and kw not in out:
+            out = kw + out
     out = re.sub(r'[\\/:*?"<>|]', "", out)
-    return out[:15]
+    return out[:20]
 
 
 # ------------------------------------------------------------------ 그림 분석
@@ -168,6 +171,12 @@ def classify(img75):
     if dens < 0.0025:
         return "blank", 0, dens
     return "X", 0, dens
+
+
+def page_fp(img):
+    """페이지 지문: 같은 스캔 파일을 두 번 넣었는지 비교용 (그림이 완전히 같을 때만 같음)."""
+    import hashlib
+    return hashlib.md5(img.convert("L").tobytes()).hexdigest()[:16]
 
 
 def is_gray(img75):
@@ -484,6 +493,14 @@ def snap_agent(name, roster):
     return near[0] if len(near) == 1 else name
 
 
+def fetus_check(it):
+    """태아보험: 피보험자가 비어 있고 상품명에 '태아'가 있으면 피보험자 = 태아."""
+    if not it.get("insured") and "태아" in (it.get("product_hint") or ""):
+        it["insured"] = "태아"
+        if "피보험자 칸 확인" in it.get("warns", []):
+            it["warns"].remove("피보험자 칸 확인")
+
+
 def roster_in_text(text, roster):
     t = re.sub(r"\s", "", text)
     hits = [r for r in roster if r and r in t]
@@ -513,7 +530,7 @@ class Analyzer:
             self.progress(i, n * 2, f"페이지 분석 중 ({i + 1}/{n})")
             img = self.doc.render(i, 75)
             kind, r, dens = classify(img)
-            info = {"i": i, "kind": kind, "rot": r, "dens": round(dens, 4)}
+            info = {"i": i, "kind": kind, "rot": r, "dens": round(dens, 4), "fp": page_fp(img)}
             if kind in ("G", "C") and self.mode != MODE_APP:
                 info["kind"], info["rot"] = self._confirm_title(i, kind, r)
                 if info["kind"] == "C":
@@ -654,6 +671,7 @@ class Analyzer:
         it["pages"] = pages
         it["count"] = len([p for p in pages if not p.get("off")])
         it["agent"] = snap_agent(it["agent"], self.roster)
+        fetus_check(it)
         log.info("다시 읽기: 원본 %s쪽 [%s] 보험사=%s 취급자=%s 계약자=%s 경고=%s",
                  ",".join(str(p["i"] + 1) for p in pages), "".join(p["kind"][0] for p in use),
                  it["ins"] or "(못읽음)", "읽음" if it["agent"] else "(없음)", "읽음" if it["contractor"] else "(못읽음)",
@@ -687,6 +705,7 @@ class Analyzer:
                 it["warns"].append("동일상품 확인")
         for it in items:
             it["agent"] = snap_agent(it["agent"], self.roster)
+            fetus_check(it)
             log.info("No.%d 원본 %s쪽 %s장 [%s] 보험사=%s 취급자=%s 계약자=%s 피보험자=%s 경고=%s",
                      it["no"], ",".join(str(p["i"] + 1) for p in it["pages"][:1] + it["pages"][-1:]), it["count"],
                      "".join(p["kind"][0] for p in it["pages"]),
@@ -696,7 +715,7 @@ class Analyzer:
         return pages, items
 
     def blank_item(self, grp):
-        return {"pages": [{k: p[k] for k in ("i", "rot", "kind", "gr", "gx") if k in p} for p in grp],
+        return {"pages": [{k: p[k] for k in ("i", "rot", "kind", "gr", "gx", "fp") if k in p} for p in grp],
                 "ver": "", "ins": "", "agent": "", "contractor": "", "insured": "",
                 "product": "", "plate": "", "count": len(grp), "warns": []}
 
@@ -986,6 +1005,8 @@ class Analyzer:
             ins_d = self._insured(img)
             if ins_d is None:
                 pass
+            elif ins_d == "태아":
+                it["insured"] = "태아"
             elif ins_d == "?" or not re.fullmatch(r"[가-힣]{3}|[A-Z][A-Z ]{3,25}", ins_d):
                 it["warns"].append("피보험자 칸 확인")
             elif len(set(ins_d) & set(it["contractor"] or "")) >= 2:
@@ -1022,6 +1043,8 @@ class Analyzer:
             if (g < 150).mean() < 0.04:
                 return None
             between = [w.text for w in ws if w.x0 > lab.x1 and (sig is None or w.x1 < sig.x0)]
+            if "태아" in "".join(between):
+                return "태아"
             nm = clean_name(" ".join(between))
             return nm if valid_name(nm) else "?"
         return None
