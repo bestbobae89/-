@@ -1,0 +1,13 @@
+process exited: False
+
+ProcessName     MainWindowTitle
+-----------     ---------------
+GoodRich3jong   PDF 분할·파일명 작성기
+WindowsTerminal C:\ProgramData\GitHub\HostedComputeAgent\hosted-compute-agent
+
+
+2026-10-30 12:44:51,480 INFO main: 프로그램 시작 (exe=True, 버전=v1.6)
+2026-10-30 12:44:51,532 INFO ocr: 글자인식 엔진: 윈도우 글자인식
+2026-10-30 12:44:59,151 INFO main: 프로그램 시작 (exe=True, 버전=v1.6)
+2026-10-30 12:45:03,609 INFO main: 화면 열림
+2026-10-30 12:45:03,638 INFO ocr: 글자인식 엔진: 윈도우 글자인식

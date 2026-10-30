@@ -1,0 +1,27 @@
+C:\hostedtoolcache\windows\Python\3.12.10\x64\Lib\site-packages\fitz\__init__.py:17: FutureWarning: The `fitz` API is deprecated and will be removed in future. Use `import pymupdf` instead.
+  warnings.warn(
+[OK] import webview: ok
+[OK] import fitz: ok
+[OK] import pypdf: ok
+[OK] import numpy: ok
+[OK] import PIL: ok
+[OK] import openpyxl: ok
+[OK] import winrt.windows.media.ocr: ok
+[OK] import winrt.windows.globalization: ok
+[OK] import winrt.windows.graphics.imaging: ok
+[OK] import winrt.windows.storage.streams: ok
+[OK] import winrt.windows.storage: ok
+[OK] Windows OCR (English) pipeline: ['Hello', 'World', '2026']
+[OK] Windows OCR (Korean): 계약자 홍길동 롯데손보
+[OK] PDF render/save (PyMuPDF+pypdf): render (620, 877), saved 2 pages, rot=180
+[OK] insurers: ('KB생명', 1.0)
+[OK] logo matching: 33 logos, ('롯데손보', 0.9906795024871826)
+[OK] 청약서 첫 장 이름 읽기 (Windows OCR): ('홍길동', '김철수', '이왕주')
+    OK 삼성화재: ('삼성화재', '홍길동', '', '신경균')
+    OK DB손보: ('DB손보', '김현용', '정유미', '김병규')
+    OK 메리츠: ('메리츠', '문우영', '', '김병규')
+    XX 현대해상: ('', '오동운', '', '오횬이')
+    OK KB손보: ('KB손보', '황재만', '김종숙', '신경균')
+    XX 한화손보: ('한화손보', '김현익', '', '')
+[OK] 자동차 청약서 6종 (Windows OCR): 4/6
+RESULT: PASS
