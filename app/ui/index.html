@@ -472,7 +472,7 @@ $('#saveBtn').onclick=async()=>{
  $('#doneTitle').textContent=r.errors.length?`${r.saved.length}개 저장 완료, ${r.errors.length}개 실패`:`${r.saved.length}개 파일이 저장되었습니다.`;
  $('#doneDir').textContent=r.folder;const list=[...r.errors.map(e=>'실패: '+e),...r.saved];
  $('#doneFiles').innerHTML=list.map(esc).join('<br>');
- const dn=$('#doneNote');dn.textContent=r.worklist||'';dn.style.display=r.worklist?'':'none';
+ const noteEl=$('#doneNote');noteEl.textContent=r.worklist||'';noteEl.style.display=r.worklist?'':'none';
  $('#doneDir').textContent=r.folder+(r.worklist?'':'  ·  작업 목록: '+base(r.worklist_path||''));show('done')};
 $('#openList').onclick=async()=>{if(!(await api.open_worklist()))await modal('작업 목록','작업 목록 파일이 아직 없습니다.',[['확인',1,true]])};
 $('#openDir').onclick=()=>api.open_folder();$('#again').onclick=()=>reset();
